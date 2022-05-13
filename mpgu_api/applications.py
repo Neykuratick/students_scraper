@@ -37,6 +37,11 @@ async def get_latest_applications() -> list[Applicant]:
     applicants = []
 
     records = data.get("rows")
+
+    if records is None:
+        print(f"ERR: {data}")
+        return []
+
     for record in records:
         cell = record.get("cell")
         applicant_model = Applicant(**cell)

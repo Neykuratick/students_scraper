@@ -1,0 +1,10 @@
+version: "3"
+
+services:
+  mongodb-master:
+    container_name: mongodb-mpgu
+    image: mongo
+    volumes:
+      - ./mongodb-master-data:/data/db
+    ports:
+      - "27017:27017"
