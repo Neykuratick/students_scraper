@@ -15,3 +15,5 @@ async def main():
 
 
 asyncio.run(main())
+
+# https://docs.google.com/document/d/1D4twRsfe0gMsUjo5RmswvJnY5mXIAtqLFfv8EKu8duo/edit
