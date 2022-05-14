@@ -4,6 +4,10 @@ from pydantic.fields import Field
 
 
 class Applicant(BaseModel):
+    class Config:
+        allow_population_by_field_name = True
+
+    id: int
     fullNameGrid: str
     application_code: str
     competitiveGroup_name: str = Field(..., alias="competitiveGroup.name")

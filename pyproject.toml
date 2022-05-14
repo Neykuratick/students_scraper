@@ -12,6 +12,8 @@ aiohttp-requests = "^0.1.3"
 pydantic = "^1.9.0"
 pymongo = "^4.1.1"
 motor = "^3.0.0"
+psutil = "^5.9.0"
+deepdiff = "^5.8.1"
 
 [tool.poetry.dev-dependencies]
 
