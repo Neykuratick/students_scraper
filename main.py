@@ -1,5 +1,5 @@
 import asyncio
-
+import pymongo
 from database.applicants_crud import ApplicantsCRUD
 from mpgu.actualizer import actualize
 from mpgu.api import get_latest_applications
@@ -7,12 +7,9 @@ from mpgu.api import get_latest_applications
 
 async def main():
     applicants_crud = ApplicantsCRUD()
-    # await actualize(applicants_crud)
-    #
-    i = 1
+
     async for applicant in get_latest_applications():
-        print(i, applicant)
-        i += 1
+        await applicants_crud.insert_one(applicant)
 
     # applicant = await applicants_crud.get_one("fullNameGrid", "Ли Цуй")
     # print(applicant)
