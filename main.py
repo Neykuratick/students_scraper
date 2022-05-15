@@ -1,17 +1,19 @@
 import asyncio
 
 from database.applicants_crud import ApplicantsCRUD
-from mpgu_api.actualizer import actualize
-from mpgu_api.applications import get_latest_applications
+from mpgu.actualizer import actualize
+from mpgu.api import get_latest_applications
 
 
 async def main():
     applicants_crud = ApplicantsCRUD()
-    await actualize(applicants_crud)
+    # await actualize(applicants_crud)
     #
-    # async for applicant in get_latest_applications():
-    #     await applicants_crud.insert_one(applicant)
-    #
+    i = 1
+    async for applicant in get_latest_applications():
+        print(i, applicant)
+        i += 1
+
     # applicant = await applicants_crud.get_one("fullNameGrid", "Ли Цуй")
     # print(applicant)
 

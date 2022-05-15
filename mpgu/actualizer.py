@@ -1,5 +1,5 @@
 from database.applicants_crud import ApplicantsCRUD
-from mpgu_api.applications import get_latest_applications
+from mpgu.api import get_latest_applications
 from deepdiff import DeepDiff
 
 

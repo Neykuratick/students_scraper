@@ -3,7 +3,7 @@ from motor import motor_asyncio
 # https://motor.readthedocs.io/en/stable/tutorial-asyncio.html
 from pymongo.results import UpdateResult
 
-from mpgu_api.models import Applicant
+from mpgu.models import Applicant
 
 
 class ApplicantsCRUD:
