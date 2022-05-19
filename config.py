@@ -13,5 +13,16 @@ class Settings(BaseSettings):
     AMO_AUTH_CODE: str
     AMO_REFRESH_TOKEN: str
 
+    AMO_FIELD_ID_PHONE_NUMBER: int
+    AMO_FIELD_ID_EMAIL: int
+    AMO_FIELD_ID_COMPETITIVE_GROUP: int
+    AMO_FIELD_ID_WEBSITE: int
+    AMO_PIPELINE_ID: int
+
+    # AMO_ENUM_ID_PHONE_NUMBER: int
+    # AMO_ENUM_ID_EMAIL: int
+    # AMO_ENUM_ID_COMPETITIVE_GROUP: int
+
+
 
 settings = Settings()

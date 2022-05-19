@@ -25,6 +25,8 @@ class Applicant(BaseModel):
     @validator("current_status", pre=True, always=True)
     def validate_current_status(cls, v):
         # чтобы найти новые статусы, надо в компасе отправить квери {'current_status': '1'} и менять цифру по очереди
+        # Два главных статуса у каждого договора - Сформирован (это значит, что договор заключен) и Оплачен (видна
+        # сумма оплаты).
 
         return {
             11: 'Зачислен',

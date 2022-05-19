@@ -2,6 +2,7 @@ import asyncio
 import pymongo
 
 from amo_crm.api import AmoCrmApi
+from amo_crm.models import Finances, Contact, Company, Deal
 from database.applicants_crud import ApplicantsCRUD
 from mpgu.actualizer import actualize
 from mpgu.api import get_latest_applications
@@ -9,7 +10,23 @@ from mpgu.api import get_latest_applications
 
 async def main():
     api = AmoCrmApi()
-    await api.make_request('/api/v4/account')
+    contact = Contact(
+        name='Название сделки для абитуриента Контакт Контактов',
+        first_name='Контакт',
+        last_name='Контактов',
+        phone_number='+79037884200',
+        email='contact@contacts.cont',
+        competitive_group='Контактика'
+    )
+
+    company = Company(
+        website="https://fok.sdo.mpgu.org/data-entrant/statement/view?id=123456"
+    )
+
+    print(await api.create_deal(deal=Deal(
+        company=company,
+        contact=contact
+    )))
 
 
 asyncio.run(main())

@@ -4,16 +4,20 @@ from aiohttp_requests import requests
 
 async def _get_token(payload: dict) -> str:
     url = f'https://{settings.AMO_SUBDOMAIN}.amocrm.ru/oauth2/access_token'
-    response = await requests.post(url, data=payload)
+    response = await requests.post(url, json=payload)
     data = await response.json()
-    token = data.get('access_token')
-    
-    print(f"\n\n{token=}\n\n")
-    
-    if not token:
-        raise RuntimeError('Refresh token is None')
-    
-    return token
+
+    access_token = data.get('access_token')
+    refresh_token = data.get('refresh_token')
+
+    if refresh_token is not None:
+        with open('test.txt', 'w') as f:
+            f.write(refresh_token)
+
+    if not access_token:
+        raise RuntimeError('Access token token is None')
+
+    return 'Bearer ' + access_token
 
 
 class TokenManager:
@@ -38,4 +42,3 @@ class TokenManager:
         }
 
         self.token = await _get_token(payload)
-        
