@@ -1,9 +1,11 @@
 from math import ceil
+from typing import Iterable, AsyncIterable
 
 from aiohttp_requests import requests
 
 
 # https://pypi.org/project/aiohttp-requests/
+from config import settings
 from mpgu.models import Applicant
 from utils import async_range
 
@@ -19,8 +21,8 @@ async def get_rows():
               "&visibleColumns[]=id" \
 
     headers = {
-        'Cookie': 'PHPSESSID=72f1faa3fd7a218d2064f83c16acd8cd; _csrf=9b280518a610a3c2ec79da076099a0b72ce70258149ddd2ed98bb1aa8f45ee02a%3A2%3A%7Bi%3A0%3Bs%3A5%3A%22_csrf%22%3Bi%3A1%3Bs%3A32%3A%22dlw6gd6miFgBGqTtpGh7Qm7qhJUWoDTz%22%3B%7D',
-        'X-CSRF-Token': 'RIG3DJXyolmB1vB1jaPxK2PxkqrSYpoGi1MtCoLG1cEg7cA68paUNOiQlzfK0qVfE7b6nYMPrXfjGXhd7YKBuw==',
+        'Cookie': settings.TEMP_COOKIE,
+        'X-CSRF-Token': settings.TEMP_MPGU_TOKEN
     }
 
     response = await requests.post(url, headers=headers, data=payload)
@@ -29,7 +31,7 @@ async def get_rows():
     return data.get('records')
 
 
-async def _get_applicants(page, rows):
+async def _get_applicants(page, rows) -> AsyncIterable[Applicant]:
     url = "https://dbs.mpgu.su/incoming_2021/application/jqgrid?action=request"
 
     payload = "_search=true" \
@@ -51,8 +53,8 @@ async def _get_applicants(page, rows):
               "&visibleColumns[]=incoming_id"
 
     headers = {
-        'Cookie': 'PHPSESSID=72f1faa3fd7a218d2064f83c16acd8cd; _csrf=9b280518a610a3c2ec79da076099a0b72ce70258149ddd2ed98bb1aa8f45ee02a%3A2%3A%7Bi%3A0%3Bs%3A5%3A%22_csrf%22%3Bi%3A1%3Bs%3A32%3A%22dlw6gd6miFgBGqTtpGh7Qm7qhJUWoDTz%22%3B%7D',
-        'X-CSRF-Token': 'RIG3DJXyolmB1vB1jaPxK2PxkqrSYpoGi1MtCoLG1cEg7cA68paUNOiQlzfK0qVfE7b6nYMPrXfjGXhd7YKBuw==',
+        'Cookie': settings.TEMP_COOKIE,
+        'X-CSRF-Token': settings.TEMP_MPGU_TOKEN
     }
 
     response = await requests.post(url, headers=headers, data=payload)
@@ -71,7 +73,7 @@ async def _get_applicants(page, rows):
         yield applicant_model
 
 
-async def get_latest_applications():
+async def get_latest_applications() -> AsyncIterable[Applicant]:
     step = 90
 
     rows = await get_rows()

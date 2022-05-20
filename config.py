@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     # AMO_ENUM_ID_EMAIL: int
     # AMO_ENUM_ID_COMPETITIVE_GROUP: int
 
+    TEMP_COOKIE: str
+    TEMP_MPGU_TOKEN: str
 
 
 settings = Settings()
+

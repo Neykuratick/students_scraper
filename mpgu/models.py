@@ -8,7 +8,10 @@ class Applicant(BaseModel):
         allow_population_by_field_name = True
 
     id: int
+    incoming_id: int  # id абитуриента
     fullNameGrid: str
+    first_name: str | None = Field(None)
+    last_name: str | None = Field(None)
     application_code: str
     competitiveGroup_name: str = Field(..., alias="competitiveGroup.name")
     application_number: str
@@ -16,7 +19,34 @@ class Applicant(BaseModel):
     incoming_email: str = Field(..., alias="incoming.email")
     incoming_phone_mobile: str = Field(..., alias="incoming.phone_mobile")
     competitiveGroup_financing_type: str = Field(..., alias="competitiveGroup.financing_type_id")
-    incoming_id: int  # id абитуриента
+    web_url: str | None = Field(None)
+
+    @validator("first_name", always=True)
+    def validate_first_name(cls, v, values):
+        full_name = values.get('fullNameGrid')
+        names = full_name.split(' ')
+
+        if len(names) > 1:
+            return full_name.split(' ')[0]
+        else:
+            return full_name
+
+    @validator("last_name", pre=True, always=True)
+    def validate_last_name(cls, v, values):
+        full_name = values.get('fullNameGrid')
+        names = full_name.split(' ')
+
+        if len(names) > 2:
+            return f'{names[1]} {names[2]}'
+        elif len(names) > 1:
+            return names[1]
+        else:
+            return ""
+
+    @validator("web_url", pre=True, always=True)
+    def validate_web_url(cls, v, values):
+        url = "https://fok.sdo.mpgu.org/data-entrant/statement/view?id=" + str(values.get('incoming_id'))
+        return url
 
     @validator("fullNameGrid", pre=True, always=True)
     def remove_first_end_spaces(cls, v):
@@ -69,4 +99,3 @@ class Applicant(BaseModel):
                 return value
 
         return v
-
