@@ -53,5 +53,7 @@ class Company(BaseModel):
 
 
 class Deal(BaseModel):
+    applicant_id: int  # Айди абитуриента
+    application_id: int  # Айди заявления в вуз
     contact: Contact
     company: Company

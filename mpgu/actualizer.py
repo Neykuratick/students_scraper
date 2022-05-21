@@ -1,4 +1,4 @@
-from database.applicants_crud import ApplicantsCRUD
+from database.deals_crud import ApplicantsCRUD
 from mpgu.api import get_latest_applications
 from deepdiff import DeepDiff
 
