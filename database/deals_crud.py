@@ -18,8 +18,6 @@ class DealsCRUD:
         return Deal(**document) if document else None
 
     async def get(self, modified_date: datetime = None):
-        """ Returns every document if args not specified """
-
         if modified_date:
             filter_ = {"_updated_at": {"$lt": datetime.now()}}
         else:
@@ -37,15 +35,6 @@ class DealsCRUD:
             return existing_document
 
         return await self._collection.insert_one(document)
-
-    async def insert_many(self, deals: list[Deal]) -> list[UpdateResult]:
-        result_deals = []
-
-        for deal in deals:
-            result_deal = await self.insert_one(deal)
-            result_deals.append(result_deal)
-
-        return result_deals
 
     async def update_one(self, deal: Deal) -> UpdateResult:
         document = deal.dict()
