@@ -5,7 +5,7 @@ from deepdiff import DeepDiff
 
 async def actualize(deals_crud: DealsCRUD):
     async for new_deal in get_latest_deals():
-        old_deal = await deals_crud.get_one('applicant_id', new_deal.applicant_id)
+        old_deal = await deals_crud.get_one('application_id', new_deal.application_id)
 
         diff = DeepDiff(new_deal.dict(), old_deal.dict())
         if not diff:

@@ -32,8 +32,7 @@ class DealsCRUD:
         document = deal.dict()
         document['_inserted_at'] = datetime.now()
 
-        existing_document = await self.get_one(key='applicant_id', value=deal.application_id)
-
+        existing_document = await self.get_one(key='application_id', value=deal.application_id)
         if existing_document:
             return existing_document
 
@@ -53,6 +52,6 @@ class DealsCRUD:
         document['_updated_at'] = datetime.now()
 
         return await self._collection.update_one(
-            {'applicant_id': deal.application_id},
+            {'application_id': deal.application_id},
             {'$set': document}
         )
