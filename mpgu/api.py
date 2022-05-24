@@ -8,7 +8,6 @@ from aiohttp_requests import requests
 from amo_crm.models import Deal, Contact, Company
 from config import settings
 from mpgu.models import Applicant
-from utils import async_range
 
 
 async def get_rows():
@@ -80,10 +79,8 @@ async def get_latest_deals() -> AsyncIterable[Deal]:
     rows = await get_rows()
     pages = ceil(rows / step)
 
-    async for page in async_range(pages):
-        requesting_rows = step if step < rows else rows
-
-        async for applicant in _get_applicants(page, requesting_rows):
+    for page in range(pages + 1):
+        async for applicant in _get_applicants(page, step):
             contact = Contact(
                 name=applicant.fullNameGrid,
                 first_name=applicant.first_name,
@@ -101,5 +98,3 @@ async def get_latest_deals() -> AsyncIterable[Deal]:
             )
 
             yield deal
-
-        rows -= requesting_rows
