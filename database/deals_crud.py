@@ -1,7 +1,7 @@
 from datetime import datetime
+from typing import Any
 from motor import motor_asyncio
 from pymongo.results import UpdateResult
-
 from amo_crm.models import Deal
 # https://motor.readthedocs.io/en/stable/tutorial-asyncio.html
 
@@ -13,15 +13,26 @@ class DealsCRUD:
         self._database = self._client.scraper
         self._collection = self._database.deals
 
-    async def get_one(self, key: str, value: str) -> Deal | None:
+    async def get_one(self, key: str, value: Any) -> Deal | None:
         document = await self._collection.find_one({key: value})
         return Deal(**document) if document else None
+
+    async def get(self, modified_date: datetime = None):
+        """ Returns every document if args not specified """
+
+        if modified_date:
+            filter_ = {"_updated_at": {"$lt": datetime.now()}}
+        else:
+            filter_ = {}
+
+        async for doc in self._collection.find(filter=filter_):
+            yield Deal(**doc)
 
     async def insert_one(self, deal: Deal):
         document = deal.dict()
         document['_inserted_at'] = datetime.now()
 
-        existing_document = await self.get_one(key='id', value=str(deal.application_id))
+        existing_document = await self.get_one(key='applicant_id', value=deal.application_id)
 
         if existing_document:
             return existing_document
@@ -42,6 +53,6 @@ class DealsCRUD:
         document['_updated_at'] = datetime.now()
 
         return await self._collection.update_one(
-            {'id': deal.application_id},
+            {'applicant_id': deal.application_id},
             {'$set': document}
         )

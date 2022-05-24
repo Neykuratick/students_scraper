@@ -17,6 +17,7 @@ deepdiff = "^5.8.1"
 aioauth = "^1.4.0"
 amocrm-api = "^2.4.1"
 APScheduler = "^3.8.1"
+pytz = "^2022.1"
 
 [tool.poetry.dev-dependencies]
 

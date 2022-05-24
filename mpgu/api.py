@@ -1,10 +1,11 @@
 from math import ceil
-from typing import Iterable, AsyncIterable
+from typing import AsyncIterable
 
 from aiohttp_requests import requests
 
 
 # https://pypi.org/project/aiohttp-requests/
+from amo_crm.models import Deal, Contact, Company
 from config import settings
 from mpgu.models import Applicant
 from utils import async_range
@@ -73,7 +74,7 @@ async def _get_applicants(page, rows) -> AsyncIterable[Applicant]:
         yield applicant_model
 
 
-async def get_latest_applications() -> AsyncIterable[Applicant]:
+async def get_latest_deals() -> AsyncIterable[Deal]:
     step = 90
 
     rows = await get_rows()
@@ -83,9 +84,22 @@ async def get_latest_applications() -> AsyncIterable[Applicant]:
         requesting_rows = step if step < rows else rows
 
         async for applicant in _get_applicants(page, requesting_rows):
-            yield applicant
+            contact = Contact(
+                name=applicant.fullNameGrid,
+                first_name=applicant.first_name,
+                last_name=applicant.last_name,
+                phone_number=applicant.incoming_phone_mobile,
+                email=applicant.incoming_email,
+                competitive_group=applicant.competitiveGroup_name
+            )
+
+            deal = Deal(
+                applicant_id=applicant.incoming_id,
+                application_id=applicant.id,
+                company=Company(website=applicant.web_url),
+                contact=contact
+            )
+
+            yield deal
 
         rows -= requesting_rows
-
-
-
