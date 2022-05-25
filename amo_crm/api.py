@@ -13,10 +13,27 @@ class AmoCrmApi:
     def __init__(self):
         self.token_manager = TokenManager()
 
+    @staticmethod
+    def _process_response(status_code: int, url: str, response):
+        assert status_code != 404, f'ERROR 404: RESOURCE NOT FOUND. {url=}, {response.text=}'
+        assert status_code != 402, f'PAYMENT MIGHT BE REQUIRED, {url=}, {response.text=}'
+
+    async def _make_request_patch(self, resource: str, payload: dict | list[dict]):
+        url = f'https://{settings.AMO_SUBDOMAIN}.amocrm.ru{resource}'
+
+        headers = {'Authorization': await self.token_manager.get_token()}
+        response = await requests.patch(url, headers=headers, json=payload)
+        self._process_response(status_code=response.status, url=url, response=response)
+
+        return await response.json()
+
     async def _make_request_post(self, resource: str, payload: dict | list[dict]):
         url = f'https://{settings.AMO_SUBDOMAIN}.amocrm.ru{resource}?limit=1'
+
         headers = {'Authorization': await self.token_manager.get_token()}
         response = await requests.post(url, headers=headers, json=payload)
+        self._process_response(status_code=response.status, url=url, response=response)
+
         return await response.json()
 
     async def _make_request_get(self, resource: str, payload: dict | list[dict], no_limit: bool = False):
@@ -25,8 +42,7 @@ class AmoCrmApi:
 
         headers = {'Authorization': await self.token_manager.get_token()}
         response = await requests.get(url, headers=headers, json=payload)
-
-        assert response.status != 404, f'ERROR 404: RESOURCE NOT FOUND. {url=}'
+        self._process_response(status_code=response.status, url=url, response=response)
 
         if response.status == 204:
             return None
@@ -118,6 +134,21 @@ class AmoCrmApi:
 
         return await self._create(payload=contact_payload, entity='contacts')
 
+    async def _find_contract_id_by_deal_id(self, deal_id: int) -> int | None:
+        data = await self._make_request_get(f'/api/v4/leads/{deal_id}/links', {}, no_limit=True)
+
+        try:
+            links = data.get('_embedded').get('links')
+
+            for link in links:
+                if link.get('to_entity_type') == 'contacts':
+                    contact_id = link.get('to_entity_id')
+                    return contact_id if isinstance(contact_id, int) else None
+
+        except any([AttributeError, TypeError]):
+            print(f'FIND CONTACT ERROR: contract data is presumably None. {data=}, {deal_id=}')
+            return
+
     async def _find_deal(self, deal: Deal, patching: bool = None) -> list[int]:
         tag = compose_tag(deal=deal)
         data = await self._make_request_get(f'/api/v4/leads?query={tag} {deal.contact.name}', {}, no_limit=True)
@@ -133,11 +164,18 @@ class AmoCrmApi:
             print(f'FIND DEAL ERROR: data deals is presumably None. {data=}, {deal=}')
             return []
 
-        deals_ids = []
+        contact_ids = []
 
         for result_deal in deals:
             if result_deal.get('name') == deal.contact.name:
-                deals_ids.append(result_deal.get('id'))
+                deal_id = result_deal.get('id')
+                print(f"DEBUG: Obtaining contacts for deal: {deal_id}")
+                contact_id = await self._find_contract_id_by_deal_id(deal_id=deal_id)
+
+                if isinstance(contact_id, int):
+                    contact_ids.append(contact_id)
+                else:
+                    print(f'ERROR: Failed to find contact_id ({contact_id=}) for {deal=}')
             else:
                 print(
                     f'WARNING: Queried {result_deal.get("name")}, '
@@ -145,7 +183,7 @@ class AmoCrmApi:
                     f'with {tag=}'
                 )
 
-        return deals_ids
+        return contact_ids
 
     async def create_deal(self, deal: Deal) -> int | float:
         tag = compose_tag(deal=deal)
@@ -166,7 +204,21 @@ class AmoCrmApi:
 
         return await self._create(payload=payload, entity='leads')
 
-    async def patch_deal(self, deal: Deal):
-        deal_id = await self._find_deal(deal=deal, patching=True)
+    async def patch_deal(self, deal: Deal, new_competitive_group: str):
+        contact_ids = await self._find_deal(deal=deal, patching=True)
 
-        print(f'DEBUG: PATCHING. {deal_id=}')
+        for contact_id in contact_ids:
+            competitive_group = ValueField(value=new_competitive_group).dict()
+
+            payload = {
+                'custom_fields_values': [
+                    CompetitiveGroupField(values=[competitive_group]).dict(exclude_none=True)
+                ]
+
+            }
+
+            result = await self._make_request_patch(f'/api/v4/contacts/{contact_id}', payload)
+            print(f"\n\n{result=}\n\n")
+
+        # TODO: OPTIMIZE CONTACT_ID SEARCH.
+        print(f'DEBUG: PATCHING. {contact_ids=}')
