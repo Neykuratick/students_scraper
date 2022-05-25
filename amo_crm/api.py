@@ -77,24 +77,6 @@ class AmoCrmApi:
             print(f'ERROR: {entity.capitalize()}. Return data: {data}, Error: {e}')
             raise RuntimeError(f'Не удалось получить айди у {entity}')
 
-    async def create_deal(self, deal: Deal) -> int | float:
-        tag = f"Интеграционный номер {deal.applicant_id}"
-
-        if await self._deal_exists(deal=deal, searching_tag=tag):
-            return CreationResultsEnum.DUPLICATE
-
-        payload = [{
-            'name': deal.contact.name,
-            'pipeline_id': settings.AMO_PIPELINE_ID,
-            '_embedded': {
-                'contacts': [{'id': await self._create_contact(contact=deal.contact)}],
-                'companies': [{'id': await self._create_company(company=deal.company)}],
-                'tags': [{'name': tag}]
-            }
-        }]
-
-        return await self._create(payload=payload, entity='leads')
-
     async def _create_company(self, company: Company):
         payload = [{
             'name': 'Название не указано',
@@ -127,3 +109,21 @@ class AmoCrmApi:
         ]
 
         return await self._create(payload=contact_payload, entity='contacts')
+
+    async def create_deal(self, deal: Deal) -> int | float:
+        tag = f"Интеграционный номер {deal.applicant_id}"
+
+        if await self._deal_exists(deal=deal, searching_tag=tag):
+            return CreationResultsEnum.DUPLICATE
+
+        payload = [{
+            'name': deal.contact.name,
+            'pipeline_id': settings.AMO_PIPELINE_ID,
+            '_embedded': {
+                'contacts': [{'id': await self._create_contact(contact=deal.contact)}],
+                'companies': [{'id': await self._create_company(company=deal.company)}],
+                'tags': [{'name': tag}]
+            }
+        }]
+
+        return await self._create(payload=payload, entity='leads')
