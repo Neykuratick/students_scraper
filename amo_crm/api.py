@@ -5,6 +5,10 @@ from config import settings
 from aiohttp_requests import requests
 
 
+def compose_tag(deal: Deal) -> str:
+    return f"Интеграционный номер {deal.applicant_id}"
+
+
 class AmoCrmApi:
     def __init__(self):
         self.token_manager = TokenManager()
@@ -21,6 +25,8 @@ class AmoCrmApi:
 
         headers = {'Authorization': await self.token_manager.get_token()}
         response = await requests.get(url, headers=headers, json=payload)
+
+        assert response.status != 404, f'ERROR 404: RESOURCE NOT FOUND. {url=}'
 
         if response.status == 204:
             return None
@@ -58,12 +64,14 @@ class AmoCrmApi:
         except any([AttributeError, IndexError]):
             return False
 
-    async def _deal_exists(self, deal: Deal, searching_tag: str):
+    async def _deal_exists(self, deal: Deal, searching_tag: str) -> bool:
+        deals_ids = await self._find_deal(deal=deal)
+
         exists_by_crm_id = await self._crm_id_exists(deal=deal, searching_tag=searching_tag)
         exists_by_tag = await self._tag_exists(tag=searching_tag)
-        # TODO: exists_by_field_query https://www.amocrm.ru/developers/content/crm_platform/contacts-api#contacts-list
+        exists_by_field_query = len(deals_ids) >= 1
 
-        if any([exists_by_crm_id, exists_by_tag]):
+        if any([exists_by_crm_id, exists_by_tag, exists_by_field_query]):
             return True
         else:
             return False
@@ -110,10 +118,40 @@ class AmoCrmApi:
 
         return await self._create(payload=contact_payload, entity='contacts')
 
-    async def create_deal(self, deal: Deal) -> int | float:
-        tag = f"Интеграционный номер {deal.applicant_id}"
+    async def _find_deal(self, deal: Deal, patching: bool = None) -> list[int]:
+        tag = compose_tag(deal=deal)
+        data = await self._make_request_get(f'/api/v4/leads?query={tag} {deal.contact.name}', {}, no_limit=True)
+        
+        if data is None:
+            # TODO Убрать из квери выше {deal.contact.name} и оставить только тег, если будет плохо искать
+            print(f'CRITICAL ERROR: NO ONE FOUND!!!! {tag=}, {deal=}') if patching else None
+            return []
 
-        if await self._deal_exists(deal=deal, searching_tag=tag):
+        try:
+            deals = data.get('_embedded').get('leads')
+        except AttributeError:
+            print(f'FIND DEAL ERROR: data deals is presumably None. {data=}, {deal=}')
+            return []
+
+        deals_ids = []
+
+        for result_deal in deals:
+            if result_deal.get('name') == deal.contact.name:
+                deals_ids.append(result_deal.get('id'))
+            else:
+                print(
+                    f'WARNING: Queried {result_deal.get("name")}, '
+                    f'while searching for {deal.contact.name} '
+                    f'with {tag=}'
+                )
+
+        return deals_ids
+
+    async def create_deal(self, deal: Deal) -> int | float:
+        tag = compose_tag(deal=deal)
+        deal_exists = await self._deal_exists(deal=deal, searching_tag=tag)
+
+        if deal_exists is True:
             return CreationResultsEnum.DUPLICATE
 
         payload = [{
@@ -127,3 +165,8 @@ class AmoCrmApi:
         }]
 
         return await self._create(payload=payload, entity='leads')
+
+    async def patch_deal(self, deal: Deal):
+        deal_id = await self._find_deal(deal=deal, patching=True)
+
+        print(f'DEBUG: PATCHING. {deal_id=}')

@@ -16,8 +16,7 @@ async def safe_create_deal(deal: Deal) -> tuple[bool, int]:
         assert isinstance(result, (int, float)), 'ERROR: RESULT IS NEITHER INT NOR FLOAT'
 
         if result == CreationResultsEnum.DUPLICATE:
-            # TODO implement deal patch, that appends competitiveGroup to the deal entity
-            print('Duplicate. Needs updating')
+            await amo.patch_deal(deal=deal)
 
         # Если всё норм, возвращаем кортеж
         return True, result if isinstance(result, int) else (False, result)
