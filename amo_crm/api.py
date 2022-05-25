@@ -87,15 +87,15 @@ class AmoCrmApi:
             'name': deal.contact.name,
             'pipeline_id': settings.AMO_PIPELINE_ID,
             '_embedded': {
-                'contacts': [{'id': await self.create_contact(contact=deal.contact)}],
-                'companies': [{'id': await self.create_company(company=deal.company)}],
+                'contacts': [{'id': await self._create_contact(contact=deal.contact)}],
+                'companies': [{'id': await self._create_company(company=deal.company)}],
                 'tags': [{'name': tag}]
             }
         }]
 
         return await self._create(payload=payload, entity='leads')
 
-    async def create_company(self, company: Company):
+    async def _create_company(self, company: Company):
         payload = [{
             'name': 'Название не указано',
             'custom_fields_values': [{
@@ -106,7 +106,7 @@ class AmoCrmApi:
 
         return await self._create(payload=payload, entity='companies')
 
-    async def create_contact(self, contact: Contact):
+    async def _create_contact(self, contact: Contact):
         phone_number = ValueField(value=contact.phone_number).dict()
         email = ValueField(value=contact.email).dict()
         competitive_group = ValueField(value=contact.competitive_group).dict()
