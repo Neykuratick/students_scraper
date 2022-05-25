@@ -16,7 +16,8 @@ async def safe_create_deal(deal: Deal) -> tuple[bool, int]:
         assert isinstance(result, (int, float)), 'ERROR: RESULT IS NEITHER INT NOR FLOAT'
 
         if result == CreationResultsEnum.DUPLICATE:
-            await amo.patch_deal(deal=deal)
+            # TODO new_competitive_group = await db.get_all_competitive_groups(applicant_id=deal.applicant_id)
+            await amo.patch_deal(deal=deal, new_competitive_group='hardcode')  # TODO: UNHARDCODE
 
         # Если всё норм, возвращаем кортеж
         return True, result if isinstance(result, int) else (False, result)
@@ -64,6 +65,6 @@ async def run_deals(db: DealsCRUD):
             continue
 
         print(
-            f"RUN_DEALS: {i=}, AmoCrmEntityId={id_}, {is_new(deal)=},  "
+            f"DEBUG: RUN_DEALS: {i=}, AmoCrmEntityId={id_}, {is_new(deal)=},  "
             f"{is_updated(deal)=}, Deal={deal.dict()}"
         )
