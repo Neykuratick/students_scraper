@@ -1,6 +1,9 @@
 from enum import Enum
+from typing import Optional
+
 from pydantic import BaseModel, Field
 from config import settings
+from datetime import  datetime
 
 
 class Finances(str, Enum):
@@ -53,7 +56,15 @@ class Company(BaseModel):
 
 
 class Deal(BaseModel):
-    applicant_id: int  # Айди абитуриента
-    application_id: int  # Айди заявления в вуз
+    updated_at: Optional[datetime] = Field(None)
+    inserted_at: Optional[datetime] = Field(None)
+    uploaded_at: Optional[datetime] = Field(None)
+    crm_id: Optional[int] = Field(None)
+
+    applicant_id: int  # id абитуриента
+    application_id: int  # id заявления в вуз
     contact: Contact
     company: Company
+
+    class Config:
+        allow_population_by_field_name = True

@@ -19,7 +19,7 @@ class DealsCRUD:
 
     async def get(self, modified_date: datetime = None):
         if modified_date:
-            filter_ = {"_updated_at": {"$lt": datetime.now()}}
+            filter_ = {"updated_at": {"$lt": datetime.now()}}
         else:
             filter_ = {}
 
@@ -28,7 +28,8 @@ class DealsCRUD:
 
     async def insert_one(self, deal: Deal):
         document = deal.dict()
-        document['_inserted_at'] = datetime.now()
+        document['inserted_at'] = datetime.now()
+        document['updated_at'] = datetime.now()
 
         existing_document = await self.get_one(key='application_id', value=deal.application_id)
         if existing_document:
@@ -38,9 +39,20 @@ class DealsCRUD:
 
     async def update_one(self, deal: Deal) -> UpdateResult:
         document = deal.dict()
-        document['_updated_at'] = datetime.now()
+        document['updated_at'] = datetime.now()
 
         return await self._collection.update_one(
             {'application_id': deal.application_id},
             {'$set': document}
+        )
+
+    async def actualize_uploaded_at(self, deal: Deal, crm_id: int = None) -> UpdateResult:
+        if crm_id:
+            set_dict = {'uploaded_at': datetime.now(), 'crm_id': crm_id}
+        else:
+            set_dict = {'uploaded_at': datetime.now()}
+
+        return await self._collection.update_one(
+            {'application_id': deal.application_id},
+            {'$set': set_dict}
         )
