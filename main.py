@@ -12,8 +12,8 @@ db = DealsCRUD()
 
 if __name__ == '__main__':
     scheduler = AsyncIOScheduler(timezone='UTC', daemon=True)
-    # scheduler.add_job(store_deals, 'interval', [db], seconds=3)
-    scheduler.add_job(run_deals, 'interval', [db], seconds=3)
+    scheduler.add_job(store_deals, 'interval', [db], seconds=3)
+    # scheduler.add_job(run_deals, 'interval', [db], seconds=3)
     scheduler.start()
 
     asyncio.get_event_loop().run_forever()

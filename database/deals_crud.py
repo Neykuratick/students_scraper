@@ -17,9 +17,11 @@ class DealsCRUD:
         document = await self._collection.find_one({key: value})
         return Deal(**document) if document else None
 
-    async def get(self, modified_date: datetime = None):
+    async def get(self, modified_date: datetime = None, applicant_id: int = None):
         if modified_date:
             filter_ = {"updated_at": {"$lt": datetime.now()}}
+        elif applicant_id:
+            filter_ = {"applicant_id": {"$eq": applicant_id}}
         else:
             filter_ = {}
 
@@ -33,7 +35,7 @@ class DealsCRUD:
 
         existing_document = await self.get_one(key='application_id', value=deal.application_id)
         if existing_document:
-            return existing_document
+            return 'exists'
 
         return await self._collection.insert_one(document)
 
@@ -56,3 +58,10 @@ class DealsCRUD:
             {'application_id': deal.application_id},
             {'$set': set_dict}
         )
+
+    async def find_all_competitive_groups(self, applicant_id: int) -> str:
+        groups = []
+        async for deal in self.get(applicant_id=applicant_id):
+            groups.append(deal.contact.competitive_group)
+
+        return ", ".join(groups) if len(groups) > 0 else ""

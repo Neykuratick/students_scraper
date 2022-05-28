@@ -1,4 +1,4 @@
-from amo_crm.enums import CreationResultsEnum
+from amo_crm.decorators import safe_http_request
 from amo_crm.models import Contact, PhoneNumberField, ValueField, EmailField, CompetitiveGroupField, Company, Deal
 from amo_crm.token_manager import TokenManager
 from config import settings
@@ -18,6 +18,7 @@ class AmoCrmApi:
         assert status_code != 404, f'ERROR 404: RESOURCE NOT FOUND. {url=}, {response.text=}'
         assert status_code != 402, f'PAYMENT MIGHT BE REQUIRED, {url=}, {response.text=}'
 
+    @safe_http_request
     async def _make_request_patch(self, resource: str, payload: dict | list[dict]):
         url = f'https://{settings.AMO_SUBDOMAIN}.amocrm.ru{resource}'
 
@@ -27,6 +28,7 @@ class AmoCrmApi:
 
         return await response.json()
 
+    @safe_http_request
     async def _make_request_post(self, resource: str, payload: dict | list[dict]):
         url = f'https://{settings.AMO_SUBDOMAIN}.amocrm.ru{resource}?limit=1'
 
@@ -36,6 +38,7 @@ class AmoCrmApi:
 
         return await response.json()
 
+    @safe_http_request
     async def _make_request_get(self, resource: str, payload: dict | list[dict], no_limit: bool = False):
         url = f'https://{settings.AMO_SUBDOMAIN}.amocrm.ru{resource}'
         url += '?limit=1' if not no_limit else ""
@@ -92,7 +95,7 @@ class AmoCrmApi:
         else:
             return False
 
-    async def _create(self, payload: list[dict], entity: str):
+    async def _create(self, payload: list[dict], entity: str) -> int:
         data = await self._make_request_post(f'/api/v4/{entity}', payload=payload)
 
         try:
@@ -149,10 +152,34 @@ class AmoCrmApi:
             print(f'FIND CONTACT ERROR: contract data is presumably None. {data=}, {deal_id=}')
             return
 
-    async def _find_deal(self, deal: Deal, patching: bool = None) -> list[int]:
+    async def find_contract_by_deal_duplicates(self, original_deal: Deal, duplicate_deals: list[dict]):
+        contact_ids = []
+
+        for index, result_deal in enumerate(duplicate_deals):
+            if result_deal.get('name') != original_deal.contact.name:
+                print(f'WARNING: Queried {result_deal.get("name")}, '
+                      f'while searching for {original_deal.contact.name} '
+                      f'with tag={compose_tag(deal=original_deal)}')
+                continue
+
+            deal_id = result_deal.get('id')
+
+            debug_data = f"{deal_id} ({original_deal.contact.name}). {index + 1}/{len(duplicate_deals)}"
+            print(f"DEBUG: Obtaining contacts for deal: {debug_data}")
+
+            contact_id = await self._find_contract_id_by_deal_id(deal_id=deal_id)
+
+            if contact_id is not None:
+                contact_ids.append(contact_id)
+
+        print(f"{len(duplicate_deals)=}, {len(contact_ids)=}")
+        return contact_ids
+
+    async def _find_deal(self, deal: Deal, patching: bool = None) -> list[int | dict]:
+        """ Возвращает либо сделки, либо айди контактов всех дубликатов этой сделки """
         tag = compose_tag(deal=deal)
         data = await self._make_request_get(f'/api/v4/leads?query={tag} {deal.contact.name}', {}, no_limit=True)
-        
+
         if data is None:
             # TODO Убрать из квери выше {deal.contact.name} и оставить только тег, если будет плохо искать
             print(f'CRITICAL ERROR: NO ONE FOUND!!!! {tag=}, {deal=}') if patching else None
@@ -164,33 +191,17 @@ class AmoCrmApi:
             print(f'FIND DEAL ERROR: data deals is presumably None. {data=}, {deal=}')
             return []
 
-        contact_ids = []
+        if patching:
+            return await self.find_contract_by_deal_duplicates(original_deal=deal, duplicate_deals=deals)
+        else:
+            return deals
 
-        for result_deal in deals:
-            if result_deal.get('name') == deal.contact.name:
-                deal_id = result_deal.get('id')
-                print(f"DEBUG: Obtaining contacts for deal: {deal_id}")
-                contact_id = await self._find_contract_id_by_deal_id(deal_id=deal_id)
-
-                if isinstance(contact_id, int):
-                    contact_ids.append(contact_id)
-                else:
-                    print(f'ERROR: Failed to find contact_id ({contact_id=}) for {deal=}')
-            else:
-                print(
-                    f'WARNING: Queried {result_deal.get("name")}, '
-                    f'while searching for {deal.contact.name} '
-                    f'with {tag=}'
-                )
-
-        return contact_ids
-
-    async def create_deal(self, deal: Deal) -> int | float:
+    async def create_deal(self, deal: Deal) -> dict:
         tag = compose_tag(deal=deal)
         deal_exists = await self._deal_exists(deal=deal, searching_tag=tag)
 
         if deal_exists is True:
-            return CreationResultsEnum.DUPLICATE
+            return {'detail': 'duplicate'}
 
         payload = [{
             'name': deal.contact.name,
@@ -202,23 +213,33 @@ class AmoCrmApi:
             }
         }]
 
-        return await self._create(payload=payload, entity='leads')
+        new_deal_id = await self._create(payload=payload, entity='leads')
+        if isinstance(new_deal_id, int):
+            return {'detail': 'success', 'deal_id': new_deal_id}
+        else:
+            print(f'ERROR. DEAL ID IS NOT INT. {new_deal_id=}')
+            return {'detail': 'failed'}
 
     async def patch_deal(self, deal: Deal, new_competitive_group: str):
         contact_ids = await self._find_deal(deal=deal, patching=True)
+        print(f'DEBUG: PATCHING. {contact_ids=}')
 
-        for contact_id in contact_ids:
+        patched_contacts = 0
+
+        for index, contact_id in enumerate(contact_ids):
             competitive_group = ValueField(value=new_competitive_group).dict()
 
             payload = {
                 'custom_fields_values': [
                     CompetitiveGroupField(values=[competitive_group]).dict(exclude_none=True)
                 ]
-
             }
 
             result = await self._make_request_patch(f'/api/v4/contacts/{contact_id}', payload)
-            print(f"\n\n{result=}\n\n")
+            print(f"({index + 1}/{len(contact_ids)}) PATCHED SUCCESSFULLY. NEW INSTANCE: {result=}")
+            # TODO SAFE CHECK
+            patched_contacts += 1
 
-        # TODO: OPTIMIZE CONTACT_ID SEARCH.
-        print(f'DEBUG: PATCHING. {contact_ids=}')
+        if patched_contacts > 0:
+            return {'detail': 'success', 'deal_id': deal.crm_id}
+
