@@ -60,6 +60,7 @@ class Deal(BaseModel):
     inserted_at: Optional[datetime] = Field(None)
     uploaded_at: Optional[datetime] = Field(None)
     crm_id: Optional[int] = Field(None)
+    snils: Optional[str] = Field(None)
 
     applicant_id: int  # id абитуриента
     application_id: int  # id заявления в вуз

@@ -1,6 +1,17 @@
+from typing import Optional
+
 from pydantic import BaseModel
 from pydantic.class_validators import validator
 from pydantic.fields import Field
+
+
+majors_map = {
+    'АИФ': 50,
+    'АЭК': 51,
+    'АИТ': 52,
+    'АМК': 1877,
+    'ЖУР': 1822,
+}
 
 
 class Applicant(BaseModel):
@@ -10,8 +21,8 @@ class Applicant(BaseModel):
     id: int
     incoming_id: int  # id абитуриента
     fullNameGrid: str
-    first_name: str | None = Field(None)
-    last_name: str | None = Field(None)
+    first_name: Optional[str] = Field(None)
+    last_name: Optional[str] = Field(None)
     application_code: str
     competitiveGroup_name: str = Field(..., alias="competitiveGroup.name")
     application_number: str
@@ -19,7 +30,8 @@ class Applicant(BaseModel):
     incoming_email: str = Field(..., alias="incoming.email")
     incoming_phone_mobile: str = Field(..., alias="incoming.phone_mobile")
     competitiveGroup_financing_type: str = Field(..., alias="competitiveGroup.financing_type_id")
-    web_url: str | None = Field(None)
+    web_url: Optional[str] = Field(None)
+    snils: Optional[str] = Field(None)
 
     @validator("first_name", always=True)
     def validate_first_name(cls, v, values):

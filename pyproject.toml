@@ -18,6 +18,8 @@ aioauth = "^1.4.0"
 amocrm-api = "^2.4.1"
 APScheduler = "^3.8.1"
 pytz = "^2022.1"
+aiogram = "^2.20"
+beautifulsoup4 = "^4.11.1"
 
 [tool.poetry.dev-dependencies]
 
