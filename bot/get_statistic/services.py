@@ -1,13 +1,21 @@
 import requests
-from bs4 import BeautifulSoup
-from amo_crm.models import Deal
-from aiogram.types import Message
 from aiogram import Dispatcher
+from aiogram.types import Message, InlineKeyboardMarkup
+from bs4 import BeautifulSoup
 
-from bot.get_statistic.maps import majors_map_human
+from amo_crm.models import Deal
+from bot.get_statistic.maps import majors_map_human, majors_map_system
 from database.deals_crud import db
 
 statistics_dp = Dispatcher()
+
+
+def check_deal_exists(collection: list, deal: Deal):
+    for existing_deal in collection:
+        if existing_deal.snils == deal.snils:
+            return True
+
+    return False
 
 
 async def humanize_competitive_group(deal: Deal) -> list[str]:
@@ -27,30 +35,6 @@ async def humanize_competitive_group(deal: Deal) -> list[str]:
     return returning_groups
 
 
-async def get_statistic(snils: str, group_id: int):
-    r = requests.get("https://sdo.mpgu.org/competition-list/entrant-list?cg=51&type=list")
-
-    soup = BeautifulSoup(r.text, 'html.parser')
-    table = soup.find('table')
-
-    # variable to check length of rows
-    x = (len(table.findAll('tr')))
-    # set to run through x
-    for row in table.findAll('tr')[1:x]:
-        col = row.findAll('td')
-        snils = col[1].getText()
-        total_scores = col[10].getText()  # Для платных направлений - это 11 столбик
-        print(snils)
-
-
-def check_deal_exists(collection: list, deal: Deal):
-    for existing_deal in collection:
-        if existing_deal.snils == deal.snils:
-            return True
-
-    return False
-
-
 async def find_deals_by_name(name: str) -> list[Deal]:
     deals = []
     async for deal in db.get(name=name):
@@ -64,6 +48,37 @@ async def find_deals_by_name(name: str) -> list[Deal]:
     return deals
 
 
-async def compose_message(group: int, snils: str, name: str, message: Message):
-    await message.answer(f'👨‍💻 Пытаюсь собрать статистику для абитуриента: {name}...')
-    await message.answer(f'{name}: {group} - {snils}')
+async def get_statistic(snils: str, group_id: int) -> str:
+    r = requests.get(f"https://sdo.mpgu.org/competition-list/entrant-list?cg={group_id}&type=list")
+    print(f"https://sdo.mpgu.org/competition-list/entrant-list?cg={group_id}&type=list")
+    print(snils)
+
+    soup = BeautifulSoup(r.text, 'html.parser')
+    table = soup.find('table')
+
+    found_scores = -9999
+
+    # variable to check length of rows
+    x = (len(table.findAll('tr')))
+    # set to run through x
+    for row in table.findAll('tr')[1:x]:
+        col = row.findAll('td')
+        website_snils = col[1].getText()
+        total_scores = col[10].getText()  # Для платных направлений - это 11 столбик
+        agreement = col[8].getText()  # + true, - false
+        print(agreement)
+        if snils == website_snils:
+            found_scores = total_scores
+            break
+
+    if found_scores == -9999:
+        return 'Не нашлось('
+
+    return f"{found_scores=}, {snils=}"
+
+
+async def compose_message(group: str, snils: str, message: Message, keyboard: InlineKeyboardMarkup):
+    await message.answer(f'👨‍💻 Пытаюсь собрать статистику по направлению "{group}"...')
+    group_id = majors_map_system.get(group)
+    responding_message = await get_statistic(snils=snils, group_id=group_id)
+    await message.answer(responding_message, reply_markup=keyboard)

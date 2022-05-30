@@ -7,7 +7,7 @@ from bot.get_statistic.services import find_deals_by_name, compose_message, huma
 from bot.states import Form
 
 statistics_router = Router()
-        
+
 
 @statistics_router.message(Form.deal)
 async def process_name(message: Message, state: FSMContext):
@@ -28,7 +28,7 @@ async def process_name(message: Message, state: FSMContext):
 
 @statistics_router.callback_query(
     DealCallback.filter((F.action == '1')),
-    Form.competitive_group
+    # Form.competitive_group
 )
 async def process_name_callback(query: CallbackQuery, callback_data: DealCallback, state: FSMContext):
     await query.answer('Готово!')
@@ -67,7 +67,14 @@ async def process_name_callback(query: CallbackQuery, callback_data: Competitive
     deal = data['deals'][data['deal_id']]
     group = data['groups'][group_id]
 
-    await query.answer('Готово')
+    callback = DealCallback(deal_id=data['deal_id'])
+    button = InlineKeyboardButton(text=f'🔎 Посмотреть другое направление', callback_data=callback.pack())
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button]])
 
-    await state.clear()
-    await compose_message(group=group, name=deal.contact.name, snils=deal.snils, message=message)
+    await query.answer('Готово')
+    await compose_message(
+        group=group,
+        snils=deal.snils,
+        message=message,
+        keyboard=keyboard
+    )
