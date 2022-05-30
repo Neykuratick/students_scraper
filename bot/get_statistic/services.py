@@ -1,6 +1,6 @@
 import requests
 from aiogram import Dispatcher
-from aiogram.types import Message, InlineKeyboardMarkup
+from aiogram.types import Message
 from bs4 import BeautifulSoup
 
 from amo_crm.models import Deal
@@ -72,13 +72,11 @@ async def get_statistic(snils: str, group_id: int) -> str:
             break
 
     if found_scores == -9999:
-        return 'Не нашлось('
+        return 'Ничего не нашлось('
 
     return f"{found_scores=}, {snils=}"
 
 
-async def compose_message(group: str, snils: str, message: Message, keyboard: InlineKeyboardMarkup):
-    await message.answer(f'👨‍💻 Пытаюсь собрать статистику по направлению "{group}"...')
+async def compose_message(group: str, snils: str) -> str:
     group_id = majors_map_system.get(group)
-    responding_message = await get_statistic(snils=snils, group_id=group_id)
-    await message.answer(responding_message, reply_markup=keyboard)
+    return await get_statistic(snils=snils, group_id=group_id)

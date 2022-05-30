@@ -19,6 +19,13 @@ async def process_name(message: Message, state: FSMContext):
         button = InlineKeyboardButton(text=f'💁 {deal.contact.name}', callback_data=callback.pack())
         buttons.append([button])
 
+    if len(buttons) < 1:
+        await message.answer(
+            f'🤷‍♀️ Такого абитуриента не нашлось :с\n\nВозможно, {message.text} ещё не попал(а) в базу бота'
+        )
+        await state.clear()
+        return
+
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
 
     await message.answer("🔎 Теперь выбери себя в списке", reply_markup=keyboard)
@@ -36,8 +43,9 @@ async def process_name_callback(query: CallbackQuery, callback_data: DealCallbac
 
     data = await state.get_data()
     message = data['message']
+    deal = data['deals'][callback_data.deal_id]
 
-    groups = await humanize_competitive_group(data['deals'][callback_data.deal_id])
+    groups = await humanize_competitive_group(deal=deal)
 
     buttons = []
     for index, group in enumerate(groups):
@@ -45,9 +53,16 @@ async def process_name_callback(query: CallbackQuery, callback_data: DealCallbac
         button = InlineKeyboardButton(text=f'✅ {group}', callback_data=callback.pack())
         buttons.append([button])
 
+    if len(buttons) < 1:
+        await message.answer(
+            f'🤷‍♀️ Конкурсные списки не нашлись :с'
+            f'\n\nВозможно, {deal.contact.name} подавал(а) документы на те направления, про которые бот не знает'
+        )
+        return
+
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     await message.answer(
-        '🔎 А теперь выбери направление, для которого ты хочешь узнать статистику',
+        f'🔎 А теперь выбери направление, для которого ты хочешь узнать статистику для абитуриента {deal.contact.name}',
         reply_markup=keyboard
     )
 
@@ -67,14 +82,9 @@ async def process_name_callback(query: CallbackQuery, callback_data: Competitive
     deal = data['deals'][data['deal_id']]
     group = data['groups'][group_id]
 
-    callback = DealCallback(deal_id=data['deal_id'])
-    button = InlineKeyboardButton(text=f'🔎 Посмотреть другое направление', callback_data=callback.pack())
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button]])
-
     await query.answer('Готово')
-    await compose_message(
-        group=group,
-        snils=deal.snils,
-        message=message,
-        keyboard=keyboard
-    )
+    await message.answer(f'👨‍💻 Пытаюсь собрать статистику по направлению "{group}"')
+
+    result_message = await compose_message(group=group, snils=deal.snils)
+
+    await message.answer(result_message)
