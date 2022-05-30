@@ -4,7 +4,7 @@ from aiogram.types import Message
 from bs4 import BeautifulSoup
 
 from amo_crm.models import Deal
-from bot.get_statistic.maps import majors_map_human, majors_map_system
+from bot.get_statistic.maps import majors_map_human, majors_map_system, MajorsEnum
 from database.deals_crud import db
 
 statistics_dp = Dispatcher()
@@ -58,15 +58,20 @@ async def get_statistic(snils: str, group_id: int) -> str:
 
     found_scores = -9999
 
-    # variable to check length of rows
+    if group_id == MajorsEnum.JUR_INT_JUR:
+        # Если направление платное
+        total_scores_id = 11
+    else:
+        total_scores_id = 10
+
     x = (len(table.findAll('tr')))
-    # set to run through x
     for row in table.findAll('tr')[1:x]:
         col = row.findAll('td')
+
         website_snils = col[1].getText()
-        total_scores = col[10].getText()  # Для платных направлений - это 11 столбик
+        total_scores = col[total_scores_id].getText()
         agreement = col[8].getText()  # + true, - false
-        print(agreement)
+
         if snils == website_snils:
             found_scores = total_scores
             break
