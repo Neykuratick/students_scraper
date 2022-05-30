@@ -1,6 +1,6 @@
-from aiogram import Bot, Dispatcher
+from aiogram import Dispatcher
 from bot.get_statistic.handler import statistics_router
-from bot.start import auth_router
+from bot.auth.handler import auth_router
 
 
 def get_root():
