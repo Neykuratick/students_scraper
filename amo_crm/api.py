@@ -237,7 +237,7 @@ class AmoCrmApi:
 
             result = await self._make_request_patch(f'/api/v4/contacts/{contact_id}', payload)
             print(f"({index + 1}/{len(contact_ids)}) PATCHED SUCCESSFULLY. NEW INSTANCE: {result=}")
-            # TODO SAFE CHECK
+            # TODO SAFE CHECK. If contact was patched successfully, +1. Else - no +1
             patched_contacts += 1
 
         if patched_contacts > 0:

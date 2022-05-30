@@ -35,7 +35,6 @@ async def process_name(message: Message, state: FSMContext):
 
 @statistics_router.callback_query(
     DealCallback.filter((F.action == '1')),
-    # Form.competitive_group
 )
 async def process_name_callback(query: CallbackQuery, callback_data: DealCallback, state: FSMContext):
     await query.answer('Готово!')

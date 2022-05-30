@@ -23,11 +23,3 @@ async def authenticate(message: Message, state: FSMContext):
 async def launch_statistics(message: Message, state: FSMContext):
     await state.set_state(Form.deal)
     await process_name(message=message, state=state)
-
-
-"""
-TODO
----
-Реализовать выбор абитуриента
-Реализовать выбор направления
-"""
