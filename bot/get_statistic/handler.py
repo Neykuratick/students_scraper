@@ -12,19 +12,19 @@ statistics_router = Router()
 @statistics_router.message(Form.deal)
 async def process_name(message: Message, state: FSMContext):
     deals = await find_deals_by_name(name=message.text)
-    buttons = []
 
-    for index, deal in enumerate(deals):
-        callback = DealCallback(deal_id=index)
-        button = InlineKeyboardButton(text=f'💁 {deal.contact.name}', callback_data=callback.pack())
-        buttons.append([button])
-
-    if len(buttons) < 1:
+    if len(deals) < 1:
         await message.answer(
             f'🤷‍♀️ Такого абитуриента не нашлось :с\n\nВозможно, {message.text} ещё не попал(а) в базу бота'
         )
         await state.clear()
         return
+
+    buttons = []
+    for index, deal in enumerate(deals):
+        callback = DealCallback(deal_id=index)
+        button = InlineKeyboardButton(text=f'💁 {deal.contact.name}', callback_data=callback.pack())
+        buttons.append([button])
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
 
@@ -47,18 +47,18 @@ async def process_name_callback(query: CallbackQuery, callback_data: DealCallbac
 
     groups = await humanize_competitive_group(deal=deal)
 
-    buttons = []
-    for index, group in enumerate(groups):
-        callback = CompetitiveGroupCallback(group_id=index)
-        button = InlineKeyboardButton(text=f'✅ {group}', callback_data=callback.pack())
-        buttons.append([button])
-
-    if len(buttons) < 1:
+    if len(groups) < 1:
         await message.answer(
             f'🤷‍♀️ Конкурсные списки не нашлись :с'
             f'\n\nВозможно, {deal.contact.name} подавал(а) документы на те направления, про которые бот не знает'
         )
         return
+
+    buttons = []
+    for index, group in enumerate(groups):
+        callback = CompetitiveGroupCallback(group_id=index)
+        button = InlineKeyboardButton(text=f'✅ {group}', callback_data=callback.pack())
+        buttons.append([button])
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     await message.answer(

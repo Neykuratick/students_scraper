@@ -1,6 +1,5 @@
 import requests
 from aiogram import Dispatcher
-from aiogram.types import Message
 from bs4 import BeautifulSoup
 
 from amo_crm.models import Deal
