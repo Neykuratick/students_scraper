@@ -17,11 +17,13 @@ class DealsCRUD:
         document = await self._collection.find_one({key: value})
         return Deal(**document) if document else None
 
-    async def get(self, modified_date: datetime = None, applicant_id: int = None):
+    async def get(self, modified_date: datetime = None, applicant_id: int = None, name: str = None):
         if modified_date:
             filter_ = {"updated_at": {"$lt": datetime.now()}}
         elif applicant_id:
             filter_ = {"applicant_id": {"$eq": applicant_id}}
+        elif name:
+            filter_ = {"contact.name": {"$regex": f"^{name}"}}
         else:
             filter_ = {}
 
@@ -65,3 +67,6 @@ class DealsCRUD:
             groups.append(deal.contact.competitive_group)
 
         return ", ".join(groups) if len(groups) > 0 else ""
+
+
+db = DealsCRUD()

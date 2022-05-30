@@ -5,15 +5,6 @@ from pydantic.class_validators import validator
 from pydantic.fields import Field
 
 
-majors_map = {
-    'АИФ': 50,
-    'АЭК': 51,
-    'АИТ': 52,
-    'АМК': 1877,
-    'ЖУР': 1822,
-}
-
-
 class Applicant(BaseModel):
     class Config:
         allow_population_by_field_name = True
