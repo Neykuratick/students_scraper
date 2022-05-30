@@ -16,7 +16,7 @@ async def process_name(message: Message, state: FSMContext):
 
     for index, deal in enumerate(deals):
         callback = DealCallback(deal_id=index)
-        button = InlineKeyboardButton(text=f'✅ {deal.contact.name}', callback_data=callback.pack())
+        button = InlineKeyboardButton(text=f'💁 {deal.contact.name}', callback_data=callback.pack())
         buttons.append([button])
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -42,12 +42,12 @@ async def process_name_callback(query: CallbackQuery, callback_data: DealCallbac
     buttons = []
     for index, group in enumerate(groups):
         callback = CompetitiveGroupCallback(group_id=index)
-        button = InlineKeyboardButton(text=f'✅ Направление {group}', callback_data=callback.pack())
+        button = InlineKeyboardButton(text=f'✅ {group}', callback_data=callback.pack())
         buttons.append([button])
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     await message.answer(
-        'А теперь выбери направление, на которое ты хочешь узнать статистику',
+        '🔎 А теперь выбери направление, для которого ты хочешь узнать статистику',
         reply_markup=keyboard
     )
 
