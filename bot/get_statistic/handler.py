@@ -12,11 +12,12 @@ statistics_router = Router()
 
 @statistics_router.message(Form.deal)
 async def process_name(message: Message, state: FSMContext):
-    deals = await find_deals_by_name(name=message.text)
+    name = message.text.lower().title()
+    deals = await find_deals_by_name(name=name)
 
     if len(deals) < 1:
         await message.answer(
-            f'🤷‍♀️ Такого абитуриента не нашлось :с\n\nВозможно, {message.text} ещё не попал(а) в базу бота'
+            f'🤷‍♀️ Такого абитуриента не нашлось :с\n\nВозможно, {name} ещё не попал(а) в базу бота'
         )
         await state.clear()
         return

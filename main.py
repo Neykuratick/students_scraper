@@ -18,8 +18,6 @@ if __name__ == '__main__':
     root_router.run_polling(bot)
 
 
-# TODO actual statistics search
-# TODO lowercase name search (string.split(" ")  string.tolowercase(), string.tocamelcase())
 # TODO admin report message
 # TODO move student's card in the AMOCRM pipeline according to the current application status
 
