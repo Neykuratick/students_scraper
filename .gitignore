@@ -3,3 +3,4 @@
 *__pycache__
 .env
 mongodb-master-data
+test.txt
