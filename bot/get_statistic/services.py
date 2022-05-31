@@ -90,14 +90,14 @@ async def get_statistic(snils: str, group_id: int) -> str:
     if found_scores == -9999:
         return 'Ничего не нашлось('
 
-    free_major = budget_seats > -1
+    has_budget_seats = budget_seats > -1
     has_chance = agreements < budget_seats
 
     text = f"Итоговых баллов: {found_scores}"
     text += f"\nАбитуриентов перед тобой: {people_above}"
     text += f"\nИз них подали согласие на зачисление: {agreements}"
-    text += f"\nВсего бюджетных мест: {budget_seats}" if free_major else ""
-    text += f"\n\nКажется, по этому направлению ты уже не пройдёшь 😢" if not has_chance and free_major else ""
-    text += f"\n\nУ тебя ещё есть шансы!! 🥳" if has_chance and free_major else ""
+    text += f"\nВсего бюджетных мест: {budget_seats}" if has_budget_seats else ""
+    text += f"\n\nКажется, по этому направлению ты уже не пройдёшь 😢" if not has_chance and has_budget_seats else ""
+    text += f"\n\nУ тебя ещё есть шансы!! 🥳" if has_chance and has_budget_seats else ""
 
     return text
