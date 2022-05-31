@@ -3,7 +3,8 @@ from aiogram.dispatcher.router import Router
 from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from magic_filter import F
 from bot.get_statistic.callbacks import DealCallback, CompetitiveGroupCallback
-from bot.get_statistic.services import find_deals_by_name, compose_message, humanize_competitive_group
+from bot.get_statistic.maps import majors_map_system
+from bot.get_statistic.services import find_deals_by_name, humanize_competitive_group, get_statistic
 from bot.states import Form
 
 statistics_router = Router()
@@ -82,8 +83,13 @@ async def process_name_callback(query: CallbackQuery, callback_data: Competitive
     group = data['groups'][group_id]
 
     await query.answer('Готово')
-    await message.answer(f'👨‍💻 Пытаюсь собрать статистику по направлению "{group}"')
+    await message.answer(
+        f'👨‍💻 Пытаюсь собрать статистику по направлению "{group}"'
+        f'\n\n⏳ Это может занять продолжительное время, в зависимости от популярности направления',
+    )
 
-    result_message = await compose_message(group=group, snils=deal.snils)
+    group_id = majors_map_system.get(group)
+    text = f'📈 Готово! Вот статистика для абитуриента {deal.contact.name}:\n\n'
+    text += await get_statistic(snils=deal.snils, group_id=group_id)
 
-    await message.answer(result_message)
+    await message.answer(text)
