@@ -26,7 +26,6 @@ class Settings(BaseSettings):
     TEMP_COOKIE: str
     TEMP_MPGU_TOKEN: str
     AMO_AUTH_CODE: str
-    AMO_REFRESH_TOKEN: str
 
 
 settings = Settings()

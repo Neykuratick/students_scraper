@@ -63,7 +63,7 @@ async def process_name_callback(query: CallbackQuery, callback_data: DealCallbac
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     await message.answer(
-        f'🔎 А теперь выбери направление, для которого ты хочешь узнать статистику для абитуриента {deal.contact.name}',
+        f'🔎 А теперь выбери направление, по которому ты хочешь узнать статистику для абитуриента {deal.contact.name}',
         reply_markup=keyboard
     )
 

@@ -33,11 +33,14 @@ class TokenManager:
         return self.token
 
     async def refresh_token(self):
+        with open('test.txt', 'r') as f:
+            refresh_token = f.read()
+
         payload = {
             "client_id": settings.AMO_CLIENT_ID,
             "client_secret": settings.AMO_CLIENT_SECRET,
             "grant_type": "refresh_token",
-            "refresh_token": settings.AMO_REFRESH_TOKEN,
+            "refresh_token": refresh_token,
             "redirect_uri": settings.AMO_REDIRECT_URL,
         }
 
