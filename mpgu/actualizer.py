@@ -1,15 +1,28 @@
-from database.deals_crud import DealsCRUD
-from mpgu.api import get_latest_deals
-from deepdiff import DeepDiff
+import requests
+from bs4 import BeautifulSoup
+from config import mpgu_headers
 
 
-async def actualize(deals_crud: DealsCRUD):
-    async for new_deal in get_latest_deals():
-        old_deal = await deals_crud.get_one('application_id', new_deal.application_id)
+def parse_table(table):
+    x = (len(table.findAll('tr')))
+    for index, row in enumerate(table.findAll('tr')[1:x]):
+        col = row.findAll('td')
+        fio = col[2].getText()
+        contract_status = col[5].getText()
 
-        diff = DeepDiff(new_deal.dict(), old_deal.dict())
-        if not diff:
-            continue
+        return fio, contract_status
 
-        # Если абитуриент поменялся, обновляем его заявку целиком
-        await deals_crud.update_one(new_deal)
+
+async def get_contract_statuses():
+    page = 1900  # TODO поменять на более актуальную страницу на проде
+
+    while True:
+        page += 1
+
+        r = requests.post(f'https://dbs.mpgu.su/abiturient/contract?page={page}', headers=mpgu_headers)
+        soup = BeautifulSoup(r.text, 'html.parser')
+        table = soup.find('table')
+        parse_table(table)
+
+        if 'next disabled' in r.text:
+            break

@@ -1,19 +1,15 @@
 from math import ceil
 from typing import AsyncIterable
-from bs4 import BeautifulSoup
-
 from aiohttp_requests import requests
-
-
-# https://pypi.org/project/aiohttp-requests/
 from amo_crm.models import Deal, Contact, Company
-from config import settings
+from config import mpgu_headers
 from mpgu.models import Applicant
 
 
 def get_item(collection, key, target):
     for item in collection:
         if item[key] == target:
+            print(item['cell'])
             return item['cell'].get('snils')
 
 
@@ -27,13 +23,8 @@ async def get_rows() -> int:
               '&filters={"groupOp":"AND","rules":[{"field":"competitiveGroup.name","op":"cn","data":"ИМО |"}]}' \
               "&visibleColumns[]=id" \
 
-    headers = {
-        'Cookie': settings.TEMP_COOKIE,
-        'X-CSRF-Token': settings.TEMP_MPGU_TOKEN
-    }
-
     try:
-        response = await requests.post(url, headers=headers, data=payload)
+        response = await requests.post(url, headers=mpgu_headers, data=payload)
         data = await response.json()
         return data.get('records')
     except Exception as e:
@@ -63,13 +54,8 @@ async def _get_applicants(page, rows) -> AsyncIterable[Applicant]:
               "&visibleColumns[]=incoming_id" \
               "&visibleColumns[]=snils"
 
-    headers = {
-        'Cookie': settings.TEMP_COOKIE,
-        'X-CSRF-Token': settings.TEMP_MPGU_TOKEN
-    }
-
     try:
-        response = await requests.post(url, headers=headers, data=payload)
+        response = await requests.post(url, headers=mpgu_headers, data=payload)
         data = await response.json()
         records = data.get("rows")
     except Exception as e:
@@ -124,12 +110,7 @@ async def get_applicants_data() -> list:
               "&visibleColumns[]=id" \
               "&visibleColumns[]=snils" \
 
-    headers = {
-        'Cookie': settings.TEMP_COOKIE,
-        'X-CSRF-Token': settings.TEMP_MPGU_TOKEN
-    }
-
-    response = await requests.post(url, headers=headers, data=payload)
+    response = await requests.post(url, headers=mpgu_headers, data=payload)
     data = await response.json()
     records = data['records']
     pages = ceil(records / 10000)
@@ -144,7 +125,7 @@ async def get_applicants_data() -> list:
                   "&visibleColumns[]=id" \
                   "&visibleColumns[]=snils" \
         
-        response = await requests.post(url, headers=headers, data=payload)
+        response = await requests.post(url, headers=mpgu_headers, data=payload)
         data = await response.json()
         rows = data.get('rows')
 

@@ -3,7 +3,7 @@ from aiogram import Dispatcher
 from bs4 import BeautifulSoup
 
 from amo_crm.models import Deal
-from bot.get_statistic.maps import majors_map_human, majors_map_system, MajorsEnum
+from bot.get_statistic.maps import majors_map_human, MajorsEnum
 from database.deals_crud import db
 
 statistics_dp = Dispatcher()
@@ -58,7 +58,7 @@ async def get_statistic(snils: str, group_id: int) -> str:
     try:
         budget_seats_str = soup.find("span", text="Контрольные цифры приема:").next_sibling
         budget_seats = int(budget_seats_str.replace(' ', ''))
-    except:
+    except Exception:
         budget_seats = -9999
 
     if group_id == MajorsEnum.JUR_INT_JUR:

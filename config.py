@@ -29,4 +29,7 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-
+mpgu_headers = {
+    'Cookie': settings.TEMP_COOKIE,
+    'X-CSRF-Token': settings.TEMP_MPGU_TOKEN
+}
