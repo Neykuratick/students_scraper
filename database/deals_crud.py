@@ -50,7 +50,7 @@ class DealsCRUD:
 
     async def get(self, modified_date: datetime = None, applicant_id: int = None, name: str = None):
         if modified_date:
-            filter_ = {"updated_at": {"$lt": datetime.now()}}
+            filter_ = {"updated_at": {"$gt": modified_date}}
         elif applicant_id:
             filter_ = {"applicant_id": {"$eq": applicant_id}}
         elif name:
