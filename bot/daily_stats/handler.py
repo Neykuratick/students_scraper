@@ -19,7 +19,7 @@ async def get(message: Message):
 
         stats[deal.contact.competitive_group] = {'total': count + 1}
 
-    async for deal in db.get(modified_date=datetime.today() - timedelta(days=1)):
+    async for deal in db.get(inserted_date=datetime.today() - timedelta(days=1)):  # TODO remove timedelta in prod
         count = stats.get(deal.contact.competitive_group).get('today') or 0
         stats[deal.contact.competitive_group]['today'] = count + 1
 

@@ -1,7 +1,7 @@
 import re
 from ast import literal_eval
 from datetime import datetime
-from typing import Any
+from typing import Any, AsyncIterable
 from motor import motor_asyncio
 from pymongo.results import UpdateResult
 from amo_crm.models import Deal
@@ -48,9 +48,17 @@ class DealsCRUD:
         document = await self._collection.find_one({key: value})
         return Deal(**document) if document else None
 
-    async def get(self, modified_date: datetime = None, applicant_id: int = None, name: str = None):
+    async def get(
+            self,
+            inserted_date: datetime = None,
+            modified_date: datetime = None,
+            applicant_id: int = None,
+            name: str = None
+    ) -> AsyncIterable[Deal]:
         if modified_date:
             filter_ = {"updated_at": {"$gt": modified_date}}
+        elif inserted_date:
+            filter_ = {"inserted_at": {"$gt": inserted_date}}
         elif applicant_id:
             filter_ = {"applicant_id": {"$eq": applicant_id}}
         elif name:
