@@ -1,9 +1,40 @@
+import re
+from ast import literal_eval
 from datetime import datetime
 from typing import Any
 from motor import motor_asyncio
 from pymongo.results import UpdateResult
 from amo_crm.models import Deal
-# https://motor.readthedocs.io/en/stable/tutorial-asyncio.html
+from deepdiff import DeepDiff
+
+
+def sane_diff(old_deal: dict, new_deal: dict) -> dict | None:
+    try:
+        diff = DeepDiff(t1=old_deal, t2=new_deal)
+        changed_types = diff.get('type_changes')
+        changed_values = diff.get('values_changed')
+        parsed_diff = []
+
+        if changed_types:
+            parsed_diff = [tuple(literal_eval(y) for y in re.findall(r"\[('?\w+'?)\]", x)) for x in changed_types]
+
+        if changed_values:
+            parsed_diff += [tuple(literal_eval(y) for y in re.findall(r"\[('?\w+'?)\]", x)) for x in changed_values]
+
+    except Exception as e:
+        print(f'ERROR: CAUGHT EXCEPTION: {e}')
+        return None
+
+    result_dict = {}
+    for field in parsed_diff:
+        changed_field = field[0]
+
+        if changed_field == 'updated_at':
+            continue
+
+        result_dict[changed_field] = new_deal[changed_field]
+
+    return result_dict
 
 
 class DealsCRUD:
@@ -32,7 +63,6 @@ class DealsCRUD:
 
     async def insert_one(self, deal: Deal):
         document = deal.dict()
-        document['inserted_at'] = datetime.now()
         document['updated_at'] = datetime.now()
 
         existing_document = await self.get_one(key='application_id', value=deal.application_id)
@@ -41,8 +71,14 @@ class DealsCRUD:
 
         return await self._collection.insert_one(document)
 
-    async def update_one(self, deal: Deal) -> UpdateResult:
-        document = deal.dict()
+    async def update_one(self, deal: Deal) -> UpdateResult | None:
+        old_deal = await self.get_one("application_id", deal.application_id)
+
+        diff = sane_diff(old_deal.dict(), deal.dict())
+        if not diff:
+            return None
+
+        document = diff
         document['updated_at'] = datetime.now()
 
         return await self._collection.update_one(
