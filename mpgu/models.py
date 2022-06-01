@@ -23,6 +23,7 @@ class Applicant(BaseModel):
     competitiveGroup_financing_type: str = Field(..., alias="competitiveGroup.financing_type_id")
     web_url: Optional[str] = Field(None)
     snils: Optional[str] = Field(None)
+    contract_number: Optional[str] = Field(None, alias='contract.number')
 
     @validator("first_name", always=True)
     def validate_first_name(cls, v, values):
@@ -84,6 +85,7 @@ class Applicant(BaseModel):
             "Бак | ИН | ИМО | ЖУР | межд жур | о |": "ЖУР (Иностр)",
             "Бак | ИМО | ЖУР | межд жур | о |": "ЖУР",
             "Бак | ИМО | ЛИНГ | англ яз и муждународ коммуник | о |": "АМК",
+            "Бак | ИН | ИМО | ЛИНГ | англ яз и муждународ коммуник | о | д": "АМК (Иностр)",
             "Бак | ИМО | МЕН | упр биз | о |": "МЕН",
             "Бак | ИМО | ПО2 | англ яз и франц яз | о |": "АИФ",
             "Бак | ИМО | ПО2 | иняз (англ) и инф тех в обр | о |": "АИТ",

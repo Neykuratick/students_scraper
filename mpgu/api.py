@@ -9,7 +9,6 @@ from mpgu.models import Applicant
 def get_item(collection, key, target):
     for item in collection:
         if item[key] == target:
-            print(item['cell'])
             return item['cell'].get('snils')
 
 
@@ -52,7 +51,8 @@ async def _get_applicants(page, rows) -> AsyncIterable[Applicant]:
               "&visibleColumns[]=incoming.phone_mobile" \
               "&visibleColumns[]=competitiveGroup.financing_type_id" \
               "&visibleColumns[]=incoming_id" \
-              "&visibleColumns[]=snils"
+              "&visibleColumns[]=snils" \
+              "&visibleColumns[]=contract.number" \
 
     try:
         response = await requests.post(url, headers=mpgu_headers, data=payload)
@@ -94,7 +94,9 @@ async def get_latest_deals() -> AsyncIterable[Deal]:
                 application_id=applicant.id,
                 snils=applicant.snils,
                 company=Company(website=applicant.web_url),
-                contact=contact
+                contact=contact,
+                current_status=applicant.current_status,
+                mpgu_contract_number=applicant.contract_number
             )
 
             yield deal

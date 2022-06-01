@@ -57,10 +57,12 @@ class Company(BaseModel):
 
 class Deal(BaseModel):
     updated_at: Optional[datetime] = Field(None)
-    inserted_at: Optional[datetime] = Field(None)
     uploaded_at: Optional[datetime] = Field(None)
     crm_id: Optional[int] = Field(None)
     snils: Optional[str] = Field(None)
+    contract_status: Optional[str] = Field(None)
+    current_status: Optional[str] = Field(None)
+    mpgu_contract_number: Optional[str] = Field(None)
 
     applicant_id: int  # id абитуриента
     application_id: int  # id заявления в вуз
