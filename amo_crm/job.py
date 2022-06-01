@@ -1,11 +1,10 @@
-import asyncio
 from amo_crm.api import AmoCrmApi
 from amo_crm.models import Deal
-from database.deals_crud import DealsCRUD
+from database.deals_crud import db
 from datetime import datetime
 
 
-async def patch_deal(deal: Deal, db: DealsCRUD, amo: AmoCrmApi):
+async def patch_deal(deal: Deal, amo: AmoCrmApi):
     groups = await db.find_all_competitive_groups(applicant_id=deal.applicant_id)
     patch_result = await amo.patch_deal(deal=deal, new_competitive_group=groups)
     return patch_result
@@ -26,7 +25,7 @@ def is_updated(deal: Deal) -> bool:
     return False
 
 
-async def run_deals(db: DealsCRUD):
+async def run_deals():
     i = 0
 
     amo = AmoCrmApi()
@@ -37,13 +36,13 @@ async def run_deals(db: DealsCRUD):
         if is_new(deal=deal):
             result = await amo.create_deal(deal)
         elif is_updated(deal=deal):
-            result = await patch_deal(deal=deal, db=db, amo=amo)
+            result = await patch_deal(deal=deal, amo=amo)
         else:
             print(f'INFO: Deal exists and is up to date. {i=}, {deal=}')
             continue
 
         if result.get('detail') == 'duplicate':
-            result = await patch_deal(deal=deal, db=db, amo=amo)
+            result = await patch_deal(deal=deal, amo=amo)
 
         if result.get('detail') == 'success':
             crm_deal_id = result.get('deal_id')

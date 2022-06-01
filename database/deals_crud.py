@@ -29,7 +29,7 @@ def sane_diff(old_deal: dict, new_deal: dict) -> dict | None:
     for field in parsed_diff:
         changed_field = field[0]
 
-        if changed_field == 'updated_at':
+        if changed_field in ['updated_at', 'inserted_at']:
             continue
 
         result_dict[changed_field] = new_deal[changed_field]
@@ -63,6 +63,7 @@ class DealsCRUD:
 
     async def insert_one(self, deal: Deal):
         document = deal.dict()
+        document['inserted_at'] = datetime.now()
         document['updated_at'] = datetime.now()
 
         existing_document = await self.get_one(key='application_id', value=deal.application_id)
