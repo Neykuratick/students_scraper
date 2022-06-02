@@ -53,6 +53,7 @@ async def _get_applicants(page, rows) -> AsyncIterable[Applicant]:
               "&visibleColumns[]=incoming_id" \
               "&visibleColumns[]=snils" \
               "&visibleColumns[]=contract.number" \
+              "&visibleColumns[]=contract.date" \
 
     try:
         response = await requests.post(url, headers=mpgu_headers, data=payload)
@@ -96,7 +97,8 @@ async def get_latest_deals() -> AsyncIterable[Deal]:
                 company=Company(website=applicant.web_url),
                 contact=contact,
                 current_status=applicant.current_status,
-                mpgu_contract_number=applicant.contract_number
+                mpgu_contract_number=applicant.contract_number,
+                mpgu_contract_date=applicant.contract_date
             )
 
             yield deal
@@ -116,9 +118,9 @@ async def get_applicants_data() -> list:
     data = await response.json()
     records = data['records']
     pages = ceil(records / 10000)
-    
+
     returning_data = []
-    
+
     for page in range(1, pages + 1):
         payload = "_search=false" \
                   "&nd=1653831681755" \
@@ -126,7 +128,7 @@ async def get_applicants_data() -> list:
                   f"&page={page}" \
                   "&visibleColumns[]=id" \
                   "&visibleColumns[]=snils" \
-        
+
         response = await requests.post(url, headers=mpgu_headers, data=payload)
         data = await response.json()
         rows = data.get('rows')
@@ -134,4 +136,3 @@ async def get_applicants_data() -> list:
         returning_data += rows
 
     return returning_data
-    

@@ -24,6 +24,7 @@ class Applicant(BaseModel):
     web_url: Optional[str] = Field(None)
     snils: Optional[str] = Field(None)
     contract_number: Optional[str] = Field(None, alias='contract.number')
+    contract_date: Optional[str] = Field(None, alias='contract.date')
 
     @validator("first_name", always=True)
     def validate_first_name(cls, v, values):
