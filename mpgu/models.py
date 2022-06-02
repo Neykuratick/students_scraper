@@ -1,8 +1,8 @@
 from typing import Optional
-
 from pydantic import BaseModel
 from pydantic.class_validators import validator
 from pydantic.fields import Field
+from datetime import datetime
 
 
 class Applicant(BaseModel):
@@ -24,7 +24,14 @@ class Applicant(BaseModel):
     web_url: Optional[str] = Field(None)
     snils: Optional[str] = Field(None)
     contract_number: Optional[str] = Field(None, alias='contract.number')
-    contract_date: Optional[str] = Field(None, alias='contract.date')
+    contract_date: Optional[datetime] = Field(None, alias='contract.date')
+
+    @validator("contract_date", always=True, pre=True)
+    def validate_contract_date(cls, v):
+        try:
+            return datetime.strptime(v, '%Y-%m-%d')
+        except:
+            return None
 
     @validator("first_name", always=True)
     def validate_first_name(cls, v, values):

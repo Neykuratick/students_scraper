@@ -64,7 +64,7 @@ class Deal(BaseModel):
     contract_status: Optional[str] = Field(None)
     current_status: Optional[str] = Field(None)
     mpgu_contract_number: Optional[str] = Field(None)
-    mpgu_contract_date: Optional[str] = Field(None)
+    mpgu_contract_date: Optional[datetime] = Field(None)
 
     applicant_id: int  # id абитуриента
     application_id: int  # id заявления в вуз
