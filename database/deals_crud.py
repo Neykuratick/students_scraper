@@ -52,6 +52,7 @@ class DealsCRUD:
             self,
             inserted_date: datetime = None,
             modified_date: datetime = None,
+            mpgu_contract_date: datetime = None,
             applicant_id: int = None,
             name: str = None
     ) -> AsyncIterable[Deal]:
@@ -59,6 +60,8 @@ class DealsCRUD:
             filter_ = {"updated_at": {"$gt": modified_date}}
         elif inserted_date:
             filter_ = {"inserted_at": {"$gt": inserted_date}}
+        elif mpgu_contract_date:
+            filter_ = {'mpgu_contract_date': {'$lt': mpgu_contract_date}}  # TODO change to gt
         elif applicant_id:
             filter_ = {"applicant_id": {"$eq": applicant_id}}
         elif name:
