@@ -61,7 +61,7 @@ class DealsCRUD:
         elif inserted_date:
             filter_ = {"inserted_at": {"$gt": inserted_date}}
         elif mpgu_contract_date:
-            filter_ = {'mpgu_contract_date': {'$lt': mpgu_contract_date}}  # TODO change to gt
+            filter_ = {'mpgu_contract_date': {'$gt': mpgu_contract_date}}
         elif applicant_id:
             filter_ = {"applicant_id": {"$eq": applicant_id}}
         elif name:
