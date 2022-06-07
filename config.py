@@ -7,6 +7,8 @@ class Settings(BaseSettings):
         env_file_encoding = 'utf-8'
 
     BOT_TOKEN: str
+    RUCAPTCHA_KEY: str
+    MPGU_BASE_URL = 'https://dbs.mpgu.su'
 
     AMO_CLIENT_SECRET: str
     AMO_CLIENT_ID: str
@@ -26,6 +28,9 @@ class Settings(BaseSettings):
     TEMP_COOKIE: str
     TEMP_MPGU_TOKEN: str
     AMO_AUTH_CODE: str
+
+    MPGU_LOGIN: str
+    MPGU_PASSWORD: str
 
 
 settings = Settings()
