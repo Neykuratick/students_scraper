@@ -25,16 +25,9 @@ class Settings(BaseSettings):
     # AMO_ENUM_ID_EMAIL: int
     # AMO_ENUM_ID_COMPETITIVE_GROUP: int
 
-    TEMP_COOKIE: str
-    TEMP_MPGU_TOKEN: str
     AMO_AUTH_CODE: str
 
     MPGU_LOGIN: str
     MPGU_PASSWORD: str
 
-
 settings = Settings()
-mpgu_headers = {
-    'Cookie': settings.TEMP_COOKIE,
-    'X-CSRF-Token': settings.TEMP_MPGU_TOKEN
-}

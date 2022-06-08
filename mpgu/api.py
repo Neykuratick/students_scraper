@@ -2,8 +2,9 @@ from math import ceil
 from typing import AsyncIterable
 from aiohttp_requests import requests
 from amo_crm.models import Deal, Contact, Company
-from config import mpgu_headers
+from mpgu.captcha_resolver import login
 from mpgu.models import Applicant
+from mpgu.token_manager import token_manager
 
 
 def get_item(collection, key, target):
@@ -23,7 +24,7 @@ async def get_rows() -> int:
               "&visibleColumns[]=id" \
 
     try:
-        response = await requests.post(url, headers=mpgu_headers, data=payload)
+        response = await requests.post(url, headers=token_manager.get_headers(), data=payload)
         data = await response.json()
         return data.get('records')
     except Exception as e:
@@ -56,7 +57,7 @@ async def _get_applicants(page, rows) -> AsyncIterable[Applicant]:
               "&visibleColumns[]=contract.date" \
 
     try:
-        response = await requests.post(url, headers=mpgu_headers, data=payload)
+        response = await requests.post(url, headers=token_manager.get_headers(), data=payload)
         data = await response.json()
         records = data.get("rows")
     except Exception as e:
@@ -114,7 +115,15 @@ async def get_applicants_data() -> list:
               "&visibleColumns[]=id" \
               "&visibleColumns[]=snils" \
 
-    response = await requests.post(url, headers=mpgu_headers, data=payload)
+    headers = token_manager.get_headers()
+    response = await requests.post(url, headers=headers, data=payload)
+
+    if 'АИС ВУЗ - Вход' in await response.text():
+        print(f'MPGU API: Invalid headers {headers=}')
+        print(await response.text())
+        login()
+        return await get_applicants_data()
+
     data = await response.json()
     records = data['records']
     pages = ceil(records / 10000)
@@ -129,7 +138,7 @@ async def get_applicants_data() -> list:
                   "&visibleColumns[]=id" \
                   "&visibleColumns[]=snils" \
 
-        response = await requests.post(url, headers=mpgu_headers, data=payload)
+        response = await requests.post(url, headers=token_manager.get_headers(), data=payload)
         data = await response.json()
         rows = data.get('rows')
 
