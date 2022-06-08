@@ -7,6 +7,8 @@ from pymongo.results import UpdateResult
 from app.amo_crm.models import Deal
 from deepdiff import DeepDiff
 
+from config import settings
+
 
 def sane_diff(old_deal: dict, new_deal: dict) -> dict | None:
     try:
@@ -39,7 +41,7 @@ def sane_diff(old_deal: dict, new_deal: dict) -> dict | None:
 
 class DealsCRUD:
     def __init__(self):
-        conn_str = f"mongodb://127.0.0.1:27017"
+        conn_str = f"mongodb://{settings.DB_HOST}:27017"
         self._client = motor_asyncio.AsyncIOMotorClient(conn_str, serverSelectionTimeoutMS=5000)
         self._database = self._client.scraper
         self._collection = self._database.deals

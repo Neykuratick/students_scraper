@@ -29,5 +29,7 @@ class Settings(BaseSettings):
     MPGU_LOGIN: str
     MPGU_PASSWORD: str
 
+    DB_HOST: str
+
 
 settings = Settings()
