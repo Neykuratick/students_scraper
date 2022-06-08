@@ -1,4 +1,4 @@
-from bot.binding import get_root
+from app.bot.binding import get_root
 from config import settings
 from aiogram import Bot
 

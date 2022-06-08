@@ -1,7 +1,7 @@
 from aiogram.types import Message
 
-from bot.get_statistic.handler import process_name
-from bot.states import Form
+from app.bot.get_statistic.handler import process_name
+from app.bot.states import Form
 from aiogram.dispatcher.fsm.context import FSMContext
 from aiogram.dispatcher.router import Router
 

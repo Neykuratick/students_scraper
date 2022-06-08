@@ -1,5 +1,5 @@
 import requests
-from mpgu.captcha_resolver import login
+from app.mpgu.captcha_resolver import login
 
 
 class TokenManager:

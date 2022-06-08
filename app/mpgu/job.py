@@ -1,6 +1,6 @@
-from database.deals_crud import db
-from mpgu.actualizer import get_contract_statuses
-from mpgu.api import get_latest_deals, get_applicants_data, get_item
+from app.database.deals_crud import db
+from app.mpgu.actualizer import get_contract_statuses
+from app.mpgu.api import get_latest_deals, get_applicants_data, get_item
 
 
 async def store_deals():

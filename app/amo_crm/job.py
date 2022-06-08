@@ -1,6 +1,6 @@
-from amo_crm.api import AmoCrmApi
-from amo_crm.models import Deal
-from database.deals_crud import db
+from app.amo_crm.api import AmoCrmApi
+from app.amo_crm.models import Deal
+from app.database.deals_crud import db
 from datetime import datetime
 
 

@@ -2,10 +2,10 @@ from aiogram.dispatcher.fsm.context import FSMContext
 from aiogram.dispatcher.router import Router
 from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from magic_filter import F
-from bot.get_statistic.callbacks import DealCallback, CompetitiveGroupCallback
-from bot.get_statistic.maps import majors_map_system
-from bot.get_statistic.services import find_deals_by_name, humanize_competitive_group, get_statistic
-from bot.states import Form
+from app.bot.get_statistic.callbacks import DealCallback, CompetitiveGroupCallback
+from app.bot.get_statistic.maps import majors_map_system
+from app.bot.get_statistic.services import find_deals_by_name, humanize_competitive_group, get_statistic
+from app.bot.states import Form
 
 statistics_router = Router()
 

@@ -1,9 +1,9 @@
 from math import ceil
 from typing import AsyncIterable
 from aiohttp_requests import requests
-from amo_crm.models import Deal, Contact, Company
-from mpgu.token_manager import token_manager
-from mpgu.models import Applicant
+from app.amo_crm.models import Deal, Contact, Company
+from app.mpgu.token_manager import token_manager
+from app.mpgu.models import Applicant
 
 
 def get_item(collection, key, target):

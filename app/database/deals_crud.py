@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Any, AsyncIterable
 from motor import motor_asyncio
 from pymongo.results import UpdateResult
-from amo_crm.models import Deal
+from app.amo_crm.models import Deal
 from deepdiff import DeepDiff
 
 

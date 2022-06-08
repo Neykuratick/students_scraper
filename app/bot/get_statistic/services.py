@@ -2,9 +2,9 @@ import requests
 from aiogram import Dispatcher
 from bs4 import BeautifulSoup
 
-from amo_crm.models import Deal
-from bot.get_statistic.maps import majors_map_human, MajorsEnum
-from database.deals_crud import db
+from app.amo_crm.models import Deal
+from app.bot.get_statistic.maps import majors_map_human, MajorsEnum
+from app.database.deals_crud import db
 
 statistics_dp = Dispatcher()
 

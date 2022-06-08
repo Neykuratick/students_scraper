@@ -1,7 +1,7 @@
 import asyncio
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from amo_crm.job import run_deals
-from mpgu.job import store_deals, actualize_contracts
+from app.amo_crm.job import run_deals
+from app.mpgu.job import store_deals, actualize_contracts
 
 scheduler = AsyncIOScheduler(timezone='UTC', daemon=True)
 scheduler.add_job(actualize_contracts, 'interval', seconds=3)

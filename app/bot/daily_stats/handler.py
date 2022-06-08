@@ -1,7 +1,7 @@
 from aiogram.types import Message
 from datetime import datetime, timedelta
 from aiogram.dispatcher.router import Router
-from database.deals_crud import db
+from app.database.deals_crud import db
 
 daily_stats_router = Router()
 

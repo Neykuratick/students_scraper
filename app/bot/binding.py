@@ -1,8 +1,8 @@
 from aiogram import Dispatcher
 
-from bot.daily_stats.handler import daily_stats_router
-from bot.get_statistic.handler import statistics_router
-from bot.auth.handler import auth_router
+from app.bot.daily_stats.handler import daily_stats_router
+from app.bot.get_statistic.handler import statistics_router
+from app.bot.auth.handler import auth_router
 
 
 def get_root():

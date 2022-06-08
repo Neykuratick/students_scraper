@@ -1,6 +1,6 @@
-from amo_crm.decorators import safe_http_request
-from amo_crm.models import Contact, PhoneNumberField, ValueField, EmailField, CompetitiveGroupField, Company, Deal
-from amo_crm.token_manager import TokenManager
+from app.amo_crm.decorators import safe_http_request
+from app.amo_crm.models import Contact, PhoneNumberField, ValueField, EmailField, CompetitiveGroupField, Company, Deal
+from app.amo_crm.token_manager import TokenManager
 from config import settings
 from aiohttp_requests import requests
 

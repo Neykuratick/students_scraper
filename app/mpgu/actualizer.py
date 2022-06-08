@@ -1,5 +1,5 @@
 from typing import AsyncIterable
-from mpgu.token_manager import token_manager
+from app.mpgu.token_manager import token_manager
 import requests
 from bs4 import BeautifulSoup
 
