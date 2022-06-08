@@ -4,9 +4,9 @@ from amo_crm.job import run_deals
 from mpgu.job import store_deals, actualize_contracts
 
 scheduler = AsyncIOScheduler(timezone='UTC', daemon=True)
-# scheduler.add_job(actualize_contracts, 'interval', seconds=3)
+scheduler.add_job(actualize_contracts, 'interval', seconds=3)
 scheduler.add_job(store_deals, 'interval', seconds=3)
-# scheduler.add_job(run_deals, 'interval', seconds=32)
+scheduler.add_job(run_deals, 'interval', seconds=32)
 scheduler.start()
 
 asyncio.get_event_loop().run_forever()

@@ -58,11 +58,11 @@ async def get(message: Message):
 
         stats[deal.contact.competitive_group] = {'total': count + 1}
 
-    async for deal in db.get(inserted_date=datetime.today() - timedelta(days=10)):  # TODO remove timedelta in prod
+    async for deal in db.get(inserted_date=datetime.today() - timedelta(days=1)):
         count = stats.get(deal.contact.competitive_group).get('today') or 0
         stats[deal.contact.competitive_group]['today'] = count + 1
 
-    async for deal in db.get(mpgu_contract_date=datetime.today() - timedelta(days=1)):  # TODO remove timedelta in prod
+    async for deal in db.get(mpgu_contract_date=datetime.today() - timedelta(days=1)):
         count = stats.get(deal.contact.competitive_group).get('today_contracts') or 0
         stats[deal.contact.competitive_group]['today_contracts'] = count + 1
 
