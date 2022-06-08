@@ -1,8 +1,7 @@
 from typing import AsyncIterable
-
+from mpgu.token_manager import token_manager
 import requests
 from bs4 import BeautifulSoup
-from config import mpgu_headers
 
 
 async def parse_table(table) -> AsyncIterable[list[str, str]]:
@@ -24,7 +23,7 @@ async def get_contract_statuses() -> AsyncIterable[list[str, str]]:
     while True:
         page += 1
 
-        r = requests.post(f'https://dbs.mpgu.su/abiturient/contract?page={page}', headers=mpgu_headers)
+        r = requests.post(f'https://dbs.mpgu.su/abiturient/contract?page={page}', headers=token_manager.get_headers())
         soup = BeautifulSoup(r.text, 'html.parser')
         table = soup.find('table')
 

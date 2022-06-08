@@ -12,7 +12,7 @@ async def store_deals():
 
         snils = get_item(applicants_data, 'id', deal.applicant_id)
         deal.snils = snils
-
+        print(f'STORE DEALS: Inserting {deal=}')
         result = await db.insert_one(deal)
 
         if result == 'exists':
