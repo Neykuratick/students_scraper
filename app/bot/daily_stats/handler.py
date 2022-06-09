@@ -20,7 +20,7 @@ def compose_applications_total(stats: dict) -> str:
 
 
 def compose_contracts_today(stats: dict) -> str:
-    text = "\n📝 Контрактов за сегодня:\n\n"
+    text = "\n📝📆 Контрактов за сегодня:\n\n"
     inner_text = ''
     for key, item in stats.items():
         total = item.get('today_contracts')
@@ -33,7 +33,7 @@ def compose_contracts_today(stats: dict) -> str:
 
 
 def compose_applications_today(stats: dict) -> str:
-    text = "\n📆 Заявок за сегодня:\n\n"
+    text = "\n📈📆 Заявок за сегодня:\n\n"
     inner_text = ''
     for key, item in stats.items():
         total = item.get('today')
@@ -41,6 +41,19 @@ def compose_applications_today(stats: dict) -> str:
 
     if not inner_text:
         return text + 'За сегодня не поступило заявок\n'
+
+    return text + inner_text
+
+
+def compose_contracts_total(stats: dict) -> str:
+    text = "\n📝 Всего контрактов:\n\n"
+    inner_text = ''
+    for key, item in stats.items():
+        total = item.get('total_contracts')
+        inner_text += f"{key}: {total}\n" if total is not None else ""
+
+    if not inner_text:
+        return text + 'Контрактов ещё не оформлено\n'
 
     return text + inner_text
 
@@ -66,10 +79,15 @@ async def get(message: Message):
         count = stats.get(deal.contact.competitive_group).get('today_contracts') or 0
         stats[deal.contact.competitive_group]['today_contracts'] = count + 1
 
+    async for deal in db.get(mpgu_contract_date=datetime(2021, 6, 1)):
+        count = stats.get(deal.contact.competitive_group).get('total_contracts') or 0
+        stats[deal.contact.competitive_group]['total_contracts'] = count + 1
+
     applications_total = compose_applications_total(stats)
     applications_today = compose_applications_today(stats)
     contracts_today = compose_contracts_today(stats)
+    contracts_total = compose_contracts_total(stats)
 
-    text = applications_total + applications_today + contracts_today
+    text = applications_total + contracts_total + applications_today + contracts_today
 
     await message.answer(text)
