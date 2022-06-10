@@ -34,8 +34,10 @@ async def run_deals():
         i += 1
 
         if is_new(deal=deal):
+            print(f'INFO: Uploading new {deal=}')
             result = await amo.create_deal(deal)
         elif is_updated(deal=deal):
+            print(f'INFO: Updating {deal=}')
             result = await patch_deal(deal=deal, amo=amo)
         else:
             print(f'INFO: Deal exists and is up to date. {i=}, {deal=}')

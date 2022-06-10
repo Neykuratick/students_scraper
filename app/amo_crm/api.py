@@ -52,6 +52,18 @@ class AmoCrmApi:
 
         return await response.json()
 
+    async def _find_deals_by_tag(self, tag: str) -> list[Deal]:
+        data = await self._make_request_get(
+            f'/api/v4/leads?query={tag}', {}, no_limit=True
+            )
+
+        try:
+            deals = data.get('_embedded').get('leads')
+        except:
+            return []
+
+        return deals
+
     async def _tag_exists(self, tag: str) -> bool:
         data = await self._make_request_get(f'/api/v4/leads/tags?query={tag}', payload={}, no_limit=True)
 
@@ -61,7 +73,11 @@ class AmoCrmApi:
         try:
             returned_tag = data.get('_embedded').get('tags')[0].get('name')
             print(f'WARNING: Tag is not instance of string. {data=}') if not isinstance(tag, str) else None
-            return True if tag == returned_tag else False
+            if tag == returned_tag:
+                deals = await self._find_deals_by_tag(tag=returned_tag)
+                return len(deals) > 0
+            else:
+                return False
 
         except any([AttributeError, IndexError]):
             return False
@@ -178,7 +194,8 @@ class AmoCrmApi:
     async def _find_deal(self, deal: Deal, patching: bool = None) -> list[int | dict]:
         """ Возвращает либо сделки, либо айди контактов всех дубликатов этой сделки """
         tag = compose_tag(deal=deal)
-        data = await self._make_request_get(f'/api/v4/leads?query={tag} {deal.contact.name}', {}, no_limit=True)
+        url = f'/api/v4/leads?query={tag} {deal.contact.name}'
+        data = await self._make_request_get(url, {}, no_limit=True)
 
         if data is None:
             # TODO Убрать из квери выше {deal.contact.name} и оставить только тег, если будет плохо искать
