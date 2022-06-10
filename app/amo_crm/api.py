@@ -52,19 +52,19 @@ class AmoCrmApi:
 
         return await response.json()
 
-    async def _find_deals_by_tag(self, tag: str) -> list[Deal]:
+    async def _find_deals_by_tag(self, tag: str, searching_deal: Deal) -> bool:
+        """ По сути, не находит сделки, а проверяет, есть ли по такому тегу или нет """
         data = await self._make_request_get(
             f'/api/v4/leads?query={tag}', {}, no_limit=True
             )
 
         try:
-            deals = data.get('_embedded').get('leads')
+            deal = data.get('_embedded').get('leads')[0]
+            return True if deal.get('name') == searching_deal.contact.name else False
         except:
-            return []
+            return False
 
-        return deals
-
-    async def _tag_exists(self, tag: str) -> bool:
+    async def _tag_exists(self, tag: str, deal: Deal) -> bool:
         data = await self._make_request_get(f'/api/v4/leads/tags?query={tag}', payload={}, no_limit=True)
 
         if data is None:
@@ -74,8 +74,7 @@ class AmoCrmApi:
             returned_tag = data.get('_embedded').get('tags')[0].get('name')
             print(f'WARNING: Tag is not instance of string. {data=}') if not isinstance(tag, str) else None
             if tag == returned_tag:
-                deals = await self._find_deals_by_tag(tag=returned_tag)
-                return len(deals) > 0
+                return await self._find_deals_by_tag(tag=returned_tag, searching_deal=deal)
             else:
                 return False
 
@@ -103,7 +102,7 @@ class AmoCrmApi:
         deals_ids = await self._find_deal(deal=deal)
 
         exists_by_crm_id = await self._crm_id_exists(deal=deal, searching_tag=searching_tag)
-        exists_by_tag = await self._tag_exists(tag=searching_tag)
+        exists_by_tag = await self._tag_exists(tag=searching_tag, deal=deal)
         exists_by_field_query = len(deals_ids) >= 1
 
         if any([exists_by_crm_id, exists_by_tag, exists_by_field_query]):
