@@ -45,7 +45,7 @@ async def _get_token(payload: dict) -> str:
             f.write(refresh_token)
 
     if not access_token:
-        raise RuntimeError('Access token token is None')
+        raise RuntimeError(f'Access token token is None. {data=}')
 
     return 'Bearer ' + access_token
 
