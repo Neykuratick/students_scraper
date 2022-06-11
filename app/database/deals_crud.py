@@ -114,7 +114,9 @@ class DealsCRUD:
     async def find_all_competitive_groups(self, applicant_id: int) -> str:
         groups = []
         async for deal in self.get(applicant_id=applicant_id):
-            groups.append(deal.contact.competitive_group)
+            group = deal.contact.competitive_group
+            if group not in groups:
+                groups.append(group)
 
         return ", ".join(groups) if len(groups) > 0 else ""
 
