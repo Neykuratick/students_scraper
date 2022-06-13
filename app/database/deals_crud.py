@@ -31,7 +31,7 @@ def sane_diff(old_deal: dict, new_deal: dict) -> dict | None:
     for field in parsed_diff:
         changed_field = field[0]
 
-        if changed_field in ['updated_at', 'inserted_at']:
+        if changed_field in ['updated_at', 'inserted_at', 'uploaded_at']:
             continue
 
         result_dict[changed_field] = new_deal[changed_field]
