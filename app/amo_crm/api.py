@@ -5,7 +5,7 @@ from app.amo_crm.models import (
 )
 from app.amo_crm.token_manager import TokenManager
 from config import settings
-from aiohttp_requests import requests
+import requests
 
 
 def compose_tag(deal: Deal) -> str:
@@ -59,36 +59,34 @@ class AmoCrmApi:
         url = f'https://{settings.AMO_SUBDOMAIN}.amocrm.ru{resource}'
 
         headers = {'Authorization': await self.token_manager.get_token()}
-        response = await requests.patch(url, headers=headers, json=payload)
-        self._process_response(status_code=response.status, url=url, response=response)
+        response = requests.patch(url, headers=headers, json=payload)
+        self._process_response(status_code=response.status_code, url=url, response=response)
 
-        return await response.json()
+        return response.json()
 
     @safe_http_request
     async def _make_request_post(self, resource: str, payload: dict | list[dict]):
         url = f'https://{settings.AMO_SUBDOMAIN}.amocrm.ru{resource}'
 
         headers = {'Authorization': await self.token_manager.get_token()}
-        response = await requests.post(url, headers=headers, json=payload)
-        self._process_response(status_code=response.status, url=url, response=response)
+        response = requests.post(url, headers=headers, json=payload)
+        self._process_response(status_code=response.status_code, url=url, response=response)
 
-        return await response.json()
+        return response.json()
 
     @safe_http_request
-    async def _make_request_get(
-        self, resource: str, payload: dict | list[dict], no_limit: bool = False
-        ):
+    async def _make_request_get(self, resource: str, payload: dict | list[dict], no_limit: bool = False):
         url = f'https://{settings.AMO_SUBDOMAIN}.amocrm.ru{resource}'
         url += '?limit=1' if not no_limit else ""
 
         headers = {'Authorization': await self.token_manager.get_token()}
-        response = await requests.get(url, headers=headers, json=payload)
-        self._process_response(status_code=response.status, url=url, response=response)
+        response = requests.get(url, headers=headers, json=payload)
+        self._process_response(status_code=response.status_code, url=url, response=response)
 
-        if response.status == 204:
+        if response.status_code == 204:
             return None
 
-        return await response.json()
+        return response.json()
 
     async def _find_deal(self, deal: Deal, patching: bool = None) -> list[int | dict]:
         """ Возвращает либо сделки, либо айди контактов всех дубликатов этой сделки """
@@ -269,12 +267,24 @@ class AmoCrmApi:
             }
 
             result = await self._make_request_patch(f'/api/v4/contacts/{contact_id}', payload)
+            contact_id_new = result.get('id')
+            deal_result = await self._make_request_get(f'/api/v4/contacts/{contact_id_new}/links', {})
+
+            try:
+                links = deal_result.get('_embedded').get('links')
+                for link in links:
+                    if link.get('to_entity_type') == 'leads':
+                        deal_id = link.get('to_entity_id')
+            except:
+                print(f'Amocrm: cant get id. {deal_result=}')
+                deal_id = None
+
             print(
                 f"({index + 1}/{len(contact_ids)}) PATCHED SUCCESSFULLY. NEW GROUPS: "
                 f"{new_competitive_group}. NEW INSTANCE: {result=}"
                 )
-            # TODO SAFE CHECK. If contact was patched successfully, +1. Else - no +1
+
             patched_contacts += 1
 
         if patched_contacts > 0:
-            return {'detail': 'success', 'deal_id': deal.crm_id}
+            return {'detail': 'success', 'deal_id': deal.crm_id or deal_id}
