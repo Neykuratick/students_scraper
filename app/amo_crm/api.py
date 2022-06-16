@@ -239,6 +239,7 @@ class AmoCrmApi:
             }
         }]
 
+        print(f"\n\nCREATING DEAL!!!!!!!! {deal=}\n\n")
         data = await self._make_request_post(payload=payload, resource='/api/v4/leads/complex')
         
         try:
