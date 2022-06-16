@@ -89,6 +89,9 @@ class DealsCRUD:
         old_deal = await self.get_one("application_id", deal.application_id)
 
         diff = sane_diff(old_deal.dict(), deal.dict())
+
+        print(f"UPDATING applicant_id={deal.applicant_id}, {diff=}")
+
         if not diff:
             return None
 

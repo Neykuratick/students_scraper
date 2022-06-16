@@ -143,24 +143,24 @@ class AmoCrmApi:
             return False
 
     async def _tag_exists(self, tag: str, deal: Deal) -> bool:
-        data = await self._make_request_get(
-            f'/api/v4/leads/tags?query={tag}', payload={}, no_limit=True
-            )
+        url = f'/api/v4/leads/tags?query={tag}'
+        data = await self._make_request_get(url, payload={}, no_limit=True)
 
         if data is None:
+            f'tag_exists returned None. {url=}'
             return False
 
         try:
             returned_tag = data.get('_embedded').get('tags')[0].get('name')
-            print(f'WARNING: Tag is not instance of string. {data=}') if not isinstance(
-                tag, str
-                ) else None
+            print(f'WARNING: Tag is not instance of string. {data=}') if not isinstance(tag, str) else None
             if tag == returned_tag:
                 return await self._find_deals_by_tag(tag=returned_tag, searching_deal=deal)
             else:
+                f'tag_exists {tag=} is not equeals {returned_tag=}'
                 return False
 
-        except any([AttributeError, IndexError]):
+        except any([AttributeError, IndexError]) as e:
+            print(f'tag_exists. Caught {e=}')
             return False
 
     async def _crm_id_exists(self, deal: Deal, searching_tag: str) -> bool:
@@ -186,6 +186,8 @@ class AmoCrmApi:
         exists_by_crm_id = await self._crm_id_exists(deal=deal, searching_tag=searching_tag)
         exists_by_tag = await self._tag_exists(tag=searching_tag, deal=deal)
         exists_by_field_query = len(deals_ids) >= 1
+
+        print(f'DEAL EXISTS? applicant_id={deal.applicant_id}, {exists_by_crm_id=}, {exists_by_tag=} {exists_by_field_query=}')
 
         if any([exists_by_crm_id, exists_by_tag, exists_by_field_query]):
             return True
