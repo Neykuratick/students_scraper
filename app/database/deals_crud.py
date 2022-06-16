@@ -34,6 +34,9 @@ def sane_diff(old_deal: dict, new_deal: dict) -> dict | None:
         if changed_field in ['updated_at', 'inserted_at', 'uploaded_at']:
             continue
 
+        if new_deal[changed_field] is None:
+            continue
+
         result_dict[changed_field] = new_deal[changed_field]
 
     return result_dict
