@@ -93,13 +93,13 @@ class DealsCRUD:
 
         diff = sane_diff(old_deal.dict(), deal.dict())
 
-        print(f"UPDATING applicant_id={deal.applicant_id}, {diff=}")
-
         if not diff:
             return None
 
         document = diff
         document['updated_at'] = datetime.now()
+
+        print(f"UPDATING applicant_id={deal.applicant_id}, {diff=}")
 
         return await self._collection.update_one(
             {'application_id': deal.application_id},
