@@ -3,7 +3,13 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 from config import settings
-from datetime import  datetime
+from datetime import datetime
+
+
+class GetDeal(BaseModel):
+    id: int
+    status_id: int
+    applicant_id: int
 
 
 class Finances(str, Enum):

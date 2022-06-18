@@ -3,6 +3,7 @@ from app.amo_crm.models import (
     Contact, PhoneNumberField, ValueField, EmailField,
     CompetitiveGroupField, Company, Deal,
 )
+from app.amo_crm.models import GetDeal
 from app.amo_crm.token_manager import TokenManager
 from config import settings
 import requests
@@ -77,7 +78,9 @@ class AmoCrmApi:
     @safe_http_request
     async def _make_request_get(self, resource: str, payload: dict | list[dict], no_limit: bool = False):
         url = f'https://{settings.AMO_SUBDOMAIN}.amocrm.ru{resource}'
-        url += '?limit=1' if not no_limit else ""
+
+        if no_limit is False:
+            url += '?limit=1'
 
         headers = {'Authorization': await self.token_manager.get_token()}
         response = requests.get(url, headers=headers, json=payload)
@@ -251,6 +254,19 @@ class AmoCrmApi:
             print(f'ERROR. DEAL ID IS NOT INT. {new_deal_id=}')
             return {'detail': 'failed'}
 
+    async def patch_deal_status(self, deal_id: int, status_id: int):
+        payload = [
+                {
+                    "id": deal_id,
+                    "pipeline_id": settings.AMO_PIPELINE_ID,
+                    "status_id": status_id,
+                }
+            ]
+
+        res = await self._make_request_patch(resource='/api/v4/leads', payload=payload)
+        # print(f'status_patching: {res=}')
+
+
     async def patch_deal(self, deal: Deal, new_competitive_group: str):
         contact_ids = await self._find_deal(deal=deal, patching=True)
         print(f'DEBUG: PATCHING. {contact_ids=}')
@@ -288,3 +304,37 @@ class AmoCrmApi:
 
         if patched_contacts > 0:
             return {'detail': 'success', 'deal_id': deal.crm_id or deal_id}
+
+    @staticmethod
+    def compose_deal(data: dict) -> list[GetDeal]:
+        leads = []
+
+        try:
+            api_leads = data.get('_embedded').get('leads')
+        except:
+            print(f'get_all_deals: unable to process {data=}')
+            return []
+
+        for lead in api_leads:
+            try:
+                tag_name = lead.get('_embedded').get('tags')[0].get('name')
+                applicant_id = int(tag_name.split('Интеграционный номер ')[1])
+                leads.append(GetDeal(**lead, applicant_id=applicant_id))
+            except:
+                print(f'get_all_deals: unable to process {lead=}')
+
+        return leads
+
+    async def get_all_deals(self) -> list[GetDeal]:
+        leads = []
+
+        data = await self._make_request_get(resource='/api/v4/leads?limit=250', payload={}, no_limit=True)
+        leads += AmoCrmApi.compose_deal(data=data)
+
+        while data.get('_links').get('next') is not None:
+            url = data.get('_links').get('next').get('href')
+            resource = url.split('https://avkuznetsovmpgusu.amocrm.ru')[1]
+            data = await self._make_request_get(resource=resource, payload={}, no_limit=True)
+            leads += AmoCrmApi.compose_deal(data=data)
+
+        return leads
