@@ -41,7 +41,7 @@ async def run_deals():
             print(f'INFO: Updating {deal=}')
             result = await patch_deal(deal=deal, amo=amo)
         else:
-            print(f'INFO: Deal exists and is up to date. {i=}, {deal=}')
+            # print(f'INFO: Deal exists and is up to date. {i=}, {deal=}')
             continue
 
         if result.get('detail') == 'duplicate':
