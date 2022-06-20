@@ -13,7 +13,7 @@ def get_item(collection, key, target):
 
 
 async def get_rows() -> int:
-    url = "https://dbs.mpgu.su/incoming_2021/application/jqgrid?action=request"
+    url = "https://dbs.mpgu.su/incoming_2022/application/jqgrid?action=request"
 
     payload = "_search=true" \
               "&nd=1652592848886" \
@@ -32,7 +32,7 @@ async def get_rows() -> int:
 
 
 async def _get_applicants(page, rows) -> AsyncIterable[Applicant]:
-    url = "https://dbs.mpgu.su/incoming_2021/application/jqgrid?action=request"
+    url = "https://dbs.mpgu.su/incoming_2022/application/jqgrid?action=request"
 
     payload = "_search=true" \
               "&nd=1652592848886" \
@@ -105,7 +105,7 @@ async def get_latest_deals() -> AsyncIterable[Deal]:
 
 
 async def get_applicants_data() -> list:
-    url = "https://dbs.mpgu.su/incoming_2021/jqgrid?action=request"
+    url = "https://dbs.mpgu.su/incoming_2022/jqgrid?action=request"
 
     payload = "_search=false" \
               "&nd=1653831681755" \

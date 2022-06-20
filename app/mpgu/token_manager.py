@@ -11,7 +11,7 @@ class TokenManager:
         pass
 
     def validate_tokens(self):
-        url = "https://dbs.mpgu.su/incoming_2021/jqgrid?action=request"
+        url = "https://dbs.mpgu.su/incoming_2022/jqgrid?action=request"
 
         payload = "_search=false" \
                   "&nd=1653831681755" \

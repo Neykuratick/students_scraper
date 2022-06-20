@@ -79,7 +79,7 @@ async def get(message: Message):
         count = stats.get(deal.contact.competitive_group).get('today_contracts') or 0
         stats[deal.contact.competitive_group]['today_contracts'] = count + 1
 
-    async for deal in db.get(mpgu_contract_date=datetime(2021, 6, 1)):
+    async for deal in db.get(mpgu_contract_date=datetime(2022, 6, 1)):
         count = stats.get(deal.contact.competitive_group).get('total_contracts') or 0
         stats[deal.contact.competitive_group]['total_contracts'] = count + 1
 
