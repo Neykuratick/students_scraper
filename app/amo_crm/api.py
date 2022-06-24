@@ -49,6 +49,8 @@ def get_contact_payload(contact: Contact):
 class AmoCrmApi:
     def __init__(self):
         self.token_manager = TokenManager()
+        self.statuses_blacklist = [40582729, 40582726, 40879399, 48720784]
+        self.statuses_whitelist = [40586116, 40586119]
 
     @staticmethod
     def _process_response(status_code: int, url: str, response):
@@ -76,7 +78,9 @@ class AmoCrmApi:
         return response.json()
 
     @safe_http_request
-    async def _make_request_get(self, resource: str, payload: dict | list[dict], no_limit: bool = False):
+    async def _make_request_get(
+        self, resource: str, payload: dict | list[dict], no_limit: bool = False
+        ):
         url = f'https://{settings.AMO_SUBDOMAIN}.amocrm.ru{resource}'
 
         if no_limit is False:
@@ -112,7 +116,7 @@ class AmoCrmApi:
         if patching:
             return await self.find_contract_by_deal_duplicates(
                 original_deal=deal, duplicate_deals=deals
-                )
+            )
         else:
             return deals
 
@@ -153,7 +157,9 @@ class AmoCrmApi:
 
         try:
             returned_tag = data.get('_embedded').get('tags')[0].get('name')
-            print(f'WARNING: Tag is not instance of string. {data=}') if not isinstance(tag, str) else None
+            print(f'WARNING: Tag is not instance of string. {data=}') if not isinstance(
+                tag, str
+                ) else None
             if tag == returned_tag:
                 return await self._find_deals_by_tag(tag=returned_tag, searching_deal=deal)
             else:
@@ -188,7 +194,10 @@ class AmoCrmApi:
         exists_by_tag = await self._tag_exists(tag=searching_tag, deal=deal)
         exists_by_field_query = len(deals_ids) >= 1
 
-        print(f'DEAL EXISTS? applicant_id={deal.applicant_id}, {exists_by_crm_id=}, {exists_by_tag=} {exists_by_field_query=}')
+        print(
+            f'DEAL EXISTS? applicant_id={deal.applicant_id}, {exists_by_crm_id=}, '
+            f'{exists_by_tag=} {exists_by_field_query=}'
+            )
 
         if any([exists_by_crm_id, exists_by_tag, exists_by_field_query]):
             return True
@@ -197,7 +206,7 @@ class AmoCrmApi:
 
     async def find_contract_by_deal_duplicates(
         self, original_deal: Deal, duplicate_deals: list[dict]
-        ):
+    ):
         contact_ids = []
 
         for index, result_deal in enumerate(duplicate_deals):
@@ -206,7 +215,7 @@ class AmoCrmApi:
                     f'WARNING: Queried {result_deal.get("name")}, '
                     f'while searching for {original_deal.contact.name} '
                     f'with tag={compose_tag(deal=original_deal)}'
-                    )
+                )
                 continue
 
             deal_id = result_deal.get('id')
@@ -242,12 +251,12 @@ class AmoCrmApi:
 
         print(f"\n\nCREATING DEAL!!!!!!!! {deal=}\n\n")
         data = await self._make_request_post(payload=payload, resource='/api/v4/leads/complex')
-        
+
         try:
             new_deal_id = data[0].get('id')
         except:
             raise RuntimeError(f"Не удалось получить айди у сделки. {data=}")
-        
+
         if isinstance(new_deal_id, int):
             return {'detail': 'success', 'deal_id': new_deal_id}
         else:
@@ -255,17 +264,32 @@ class AmoCrmApi:
             return {'detail': 'failed'}
 
     async def patch_deal_status(self, deal_id: int, status_id: int):
+        existing_deal = await self._make_request_get(
+            resource=f'/api/v4/leads/{deal_id}',
+            payload={}
+        )
+
+        existing_id = existing_deal.get('status_id')
+
+        if existing_id in self.statuses_blacklist:
+            # если сделка находится в человеческой колонке
+            if status_id not in self.statuses_whitelist:
+                # если новый статус не "подал согласие" или не "договор заключён"
+                return
+
+        if existing_id == status_id:
+            return
+        
         payload = [
-                {
-                    "id": deal_id,
-                    "pipeline_id": settings.AMO_PIPELINE_ID,
-                    "status_id": status_id,
-                }
-            ]
+            {
+                "id": deal_id,
+                "pipeline_id": settings.AMO_PIPELINE_ID,
+                "status_id": status_id,
+            }
+        ]
 
         res = await self._make_request_patch(resource='/api/v4/leads', payload=payload)
-        # print(f'status_patching: {res=}')
-
+        print(f'status_patching: {res=}')
 
     async def patch_deal(self, deal: Deal, new_competitive_group: str):
         contact_ids = await self._find_deal(deal=deal, patching=True)
@@ -284,7 +308,9 @@ class AmoCrmApi:
 
             result = await self._make_request_patch(f'/api/v4/contacts/{contact_id}', payload)
             contact_id_new = result.get('id')
-            deal_result = await self._make_request_get(f'/api/v4/contacts/{contact_id_new}/links', {})
+            deal_result = await self._make_request_get(
+                f'/api/v4/contacts/{contact_id_new}/links', {}
+                )
 
             try:
                 links = deal_result.get('_embedded').get('links')
@@ -298,7 +324,7 @@ class AmoCrmApi:
             print(
                 f"({index + 1}/{len(contact_ids)}) PATCHED SUCCESSFULLY. NEW GROUPS: "
                 f"{new_competitive_group}. NEW INSTANCE: {result=}"
-                )
+            )
 
             patched_contacts += 1
 
@@ -328,7 +354,9 @@ class AmoCrmApi:
     async def get_all_deals(self) -> list[GetDeal]:
         leads = []
 
-        data = await self._make_request_get(resource='/api/v4/leads?limit=250', payload={}, no_limit=True)
+        data = await self._make_request_get(
+            resource='/api/v4/leads?limit=250', payload={}, no_limit=True
+            )
         leads += AmoCrmApi.compose_deal(data=data)
 
         while data.get('_links').get('next') is not None:
