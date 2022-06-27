@@ -57,8 +57,7 @@ class Applicant(BaseModel):
 
     @validator("web_url", pre=True, always=True)
     def validate_web_url(cls, v, values):
-        url = "https://fok.sdo.mpgu.org/data-entrant/statement/view?id=" + str(values.get('incoming_id'))
-        return url
+        return "https://dbs.mpgu.su/incoming_2022/update?id=" + str(values.get('incoming_id'))
 
     @validator("fullNameGrid", pre=True, always=True)
     def remove_first_end_spaces(cls, v):
@@ -104,8 +103,8 @@ class Applicant(BaseModel):
             "Маг | ИМО | ЛИНГ | междунар комм эк и биз | о |": "МЭК",
             "Маг | ИМО | ЛИНГ | межд ком в сф бизн и менед англ | о |": "МЭК",
             "Маг | ИМО | ПО | инн пред в эдтех | з |": "ЭДТ",
-            "Маг | ИМО | ПО | проект обр опыта | з |": "ПРО",
-            "Маг | ИМО | ПО | проект обр опыта совр обуч | з |": "ПРО",
+            "Маг | ИМО | ПО | проект обр опыта | з |": "ПРО (Иностр)",
+            "Маг | ИМО | ПО | проект обр опыта совр обуч | з |": "ПРО (Иностр)",
             "Маг | ИМО | ПО | совр техно препод англ яз | з |": "СТЗ",
             "Маг | ИМО | ПО | совр техно препод англ яз (на англ яз) | з |": "СТЗ",
             "Маг | ИМО | ПО | совр техно препод англ яз | о |": "СТО",
