@@ -5,6 +5,7 @@ from app.amo_crm.models import (
 )
 from app.amo_crm.models import GetDeal
 from app.amo_crm.token_manager import TokenManager
+from app.amo_crm.token_manager import token_manager
 from config import settings
 import requests
 
@@ -48,7 +49,6 @@ def get_contact_payload(contact: Contact):
 
 class AmoCrmApi:
     def __init__(self):
-        self.token_manager = TokenManager()
         self.statuses_blacklist = [40582729, 40582726, 40879399, 48720784]
         self.statuses_whitelist = [40586116, 40586119]
 
@@ -61,7 +61,7 @@ class AmoCrmApi:
     async def _make_request_patch(self, resource: str, payload: dict | list[dict]):
         url = f'https://{settings.AMO_SUBDOMAIN}.amocrm.ru{resource}'
 
-        headers = {'Authorization': await self.token_manager.get_token()}
+        headers = {'Authorization': await token_manager.get_token()}
         response = requests.patch(url, headers=headers, json=payload)
         self._process_response(status_code=response.status_code, url=url, response=response)
 
@@ -71,7 +71,7 @@ class AmoCrmApi:
     async def _make_request_post(self, resource: str, payload: dict | list[dict]):
         url = f'https://{settings.AMO_SUBDOMAIN}.amocrm.ru{resource}'
 
-        headers = {'Authorization': await self.token_manager.get_token()}
+        headers = {'Authorization': await token_manager.get_token()}
         response = requests.post(url, headers=headers, json=payload)
         self._process_response(status_code=response.status_code, url=url, response=response)
 
@@ -86,7 +86,7 @@ class AmoCrmApi:
         if no_limit is False:
             url += '?limit=1'
 
-        headers = {'Authorization': await self.token_manager.get_token()}
+        headers = {'Authorization': await token_manager.get_token()}
         response = requests.get(url, headers=headers, json=payload)
         self._process_response(status_code=response.status_code, url=url, response=response)
 

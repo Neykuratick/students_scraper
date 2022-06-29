@@ -5,7 +5,8 @@ from requests import post
 
 def authorize_app():
     """
-        Если был утерян Refresh Token, надо поменять секретный ключ в интеграции, а потом вызвать эту функцию.
+        Если был утерян Refresh Token, надо поменять секретный ключ в интеграции, а потом вызвать
+        эту функцию.
         Авторизовывать одно и то же приложение можно раз в 20 минут,
         иначе будет ошибка Authorization code has been revoked
     """
@@ -75,3 +76,6 @@ class TokenManager:
         }
 
         self.token = await _get_token(payload)
+
+
+token_manager = TokenManager()

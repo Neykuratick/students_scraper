@@ -52,6 +52,7 @@ async def get_statistic(snils: str, group_id: int) -> str:
     print(f"https://sdo.mpgu.org/competition-list/entrant-list?cg={group_id}&type=list")
     print(snils)
 
+    print(f"\n\n{r.text=}\n\n")
     soup = BeautifulSoup(r.text, 'html.parser')
     table = soup.find('table')
 
