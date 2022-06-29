@@ -61,7 +61,7 @@ async def get_statistic(snils: str, group_id: int) -> str:
     except Exception:
         budget_seats = -9999
 
-    if group_id == MajorsEnum.JUR_INT_JUR:
+    if group_id in [MajorsEnum.JUR_INT_JUR, MajorsEnum.MANAGEMENT]:
         # Если направление платное
         total_scores_id = 11
     else:
