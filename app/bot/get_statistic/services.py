@@ -1,7 +1,7 @@
 import requests
 from aiogram import Dispatcher
 from bs4 import BeautifulSoup
-
+from requests import Response
 from app.amo_crm.models import Deal
 from app.bot.get_statistic.maps import majors_map_human, MajorsEnum
 from app.database.deals_crud import db
@@ -47,8 +47,29 @@ async def find_deals_by_name(name: str) -> list[Deal]:
     return deals
 
 
+def get_stats_page(group_id: int) -> Response:
+    session = requests.Session()
+    r = session.get(f"https://sdo.mpgu.org/competition-list/entrant-list?cg={group_id}&type=list")
+
+    soup = BeautifulSoup(r.text, 'html.parser')
+    csrf_token_div = soup.find("meta", {"name": "csrf-token"})
+    csrf_token = csrf_token_div['content']
+
+    data = {'_csrf-frontend': csrf_token}
+
+    headers = {
+        'Origin': 'https://sdo.mpgu.org',
+        'Referer': 'https://sdo.mpgu.org/site/anti-ddos',
+    }
+
+    session = requests.Session()
+    session.post('https://sdo.mpgu.org/site/anti-ddos', data=data, headers=headers, cookies=r.cookies)
+
+    return session.get(f"https://sdo.mpgu.org/competition-list/entrant-list?cg={group_id}&type=list")
+
+
 async def get_statistic(snils: str, group_id: int) -> str:
-    r = requests.get(f"https://sdo.mpgu.org/competition-list/entrant-list?cg={group_id}&type=list")
+    r = get_stats_page(group_id=group_id)
     print(f"https://sdo.mpgu.org/competition-list/entrant-list?cg={group_id}&type=list")
     print(snils)
 
