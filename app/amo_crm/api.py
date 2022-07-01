@@ -14,6 +14,14 @@ def compose_tag(deal: Deal) -> str:
     return f"Интеграционный номер {deal.applicant_id}"
 
 
+def get_tag(lead: dict) -> str:
+    tags = lead.get('_embedded').get('tags')
+    for tag in tags:
+        tag_name = tag.get('name')
+        if 'Интеграционный' in tag_name:
+            return tag_name
+
+
 def get_company_payload(company: Company):
     payload = [{
         'name': 'Название не указано',
@@ -80,7 +88,7 @@ class AmoCrmApi:
     @safe_http_request
     async def _make_request_get(
         self, resource: str, payload: dict | list[dict], no_limit: bool = False
-        ):
+    ):
         url = f'https://{settings.AMO_SUBDOMAIN}.amocrm.ru{resource}'
 
         if no_limit is False:
@@ -156,10 +164,10 @@ class AmoCrmApi:
             return False
 
         try:
-            returned_tag = data.get('_embedded').get('tags')[0].get('name')
+            returned_tag = get_tag(lead=data)
             print(f'WARNING: Tag is not instance of string. {data=}') if not isinstance(
                 tag, str
-                ) else None
+            ) else None
             if tag == returned_tag:
                 return await self._find_deals_by_tag(tag=returned_tag, searching_deal=deal)
             else:
@@ -177,7 +185,7 @@ class AmoCrmApi:
         data = await self._make_request_get(f'/api/v4/leads/{deal.crm_id}', {})
 
         try:
-            tag = data.get('_embedded').get('tags')[0].get('name')
+            tag = get_tag(lead=data)
             if isinstance(tag, str):
                 return True if searching_tag == tag else False
 
@@ -197,7 +205,7 @@ class AmoCrmApi:
         print(
             f'DEAL EXISTS? applicant_id={deal.applicant_id}, {exists_by_crm_id=}, '
             f'{exists_by_tag=} {exists_by_field_query=}'
-            )
+        )
 
         if any([exists_by_crm_id, exists_by_tag, exists_by_field_query]):
             return True
@@ -279,7 +287,7 @@ class AmoCrmApi:
 
         if existing_id == status_id:
             return
-        
+
         payload = [
             {
                 "id": deal_id,
@@ -310,7 +318,7 @@ class AmoCrmApi:
             contact_id_new = result.get('id')
             deal_result = await self._make_request_get(
                 f'/api/v4/contacts/{contact_id_new}/links', {}
-                )
+            )
 
             try:
                 links = deal_result.get('_embedded').get('links')
@@ -337,17 +345,17 @@ class AmoCrmApi:
 
         try:
             api_leads = data.get('_embedded').get('leads')
-        except:
-            print(f'get_all_deals: unable to process {data=}')
+        except Exception as e:
+            print(f'\n\nget_all_deals: unable to process {data=}. Exception: {e}\n\n')
             return []
 
         for lead in api_leads:
             try:
-                tag_name = lead.get('_embedded').get('tags')[0].get('name')
+                tag_name = get_tag(lead=lead)
                 applicant_id = int(tag_name.split('Интеграционный номер ')[1])
                 leads.append(GetDeal(**lead, applicant_id=applicant_id))
-            except:
-                print(f'get_all_deals: unable to process {lead=}')
+            except Exception as e:
+                print(f'\n\nget_all_deals: unable to process {lead=}. Exception: {e}\n\n')
 
         return leads
 
@@ -356,7 +364,7 @@ class AmoCrmApi:
 
         data = await self._make_request_get(
             resource='/api/v4/leads?limit=250', payload={}, no_limit=True
-            )
+        )
         leads += AmoCrmApi.compose_deal(data=data)
 
         while data.get('_links').get('next') is not None:
