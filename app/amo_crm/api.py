@@ -6,8 +6,13 @@ from app.amo_crm.models import (
 from app.amo_crm.models import GetDeal
 from app.amo_crm.token_manager import TokenManager
 from app.amo_crm.token_manager import token_manager
+from app.database.deals_crud import db
 from config import settings
 import requests
+
+
+def strings_equal(original: str, compared: str):
+    return original.lower().replace('ё', 'е') == compared.lower().replace('ё', 'е')
 
 
 def compose_tag(deal: Deal) -> str:
@@ -151,7 +156,7 @@ class AmoCrmApi:
 
         try:
             deal = data.get('_embedded').get('leads')[0]
-            return True if deal.get('name') == searching_deal.contact.name else False
+            return strings_equal(deal.get('name'), searching_deal.contact.name)
         except:
             return False
 
@@ -195,9 +200,17 @@ class AmoCrmApi:
         except any([AttributeError, IndexError]):
             return False
 
-    async def _deal_exists(self, deal: Deal, searching_tag: str) -> bool:
-        deals_ids = await self._find_deal(deal=deal)
+    @staticmethod
+    async def find_crm_id(deal: Deal) -> int:
+        async for application in db.get(applicant_id=deal.applicant_id):
+            if application.crm_id is not None:
+                return application.crm_id
 
+    async def _deal_exists(self, deal: Deal, searching_tag: str) -> bool:
+        if isinstance(deal.crm_id, int):
+            return True
+
+        deals_ids = await self._find_deal(deal=deal)
         exists_by_crm_id = await self._crm_id_exists(deal=deal, searching_tag=searching_tag)
         exists_by_tag = await self._tag_exists(tag=searching_tag, deal=deal)
         exists_by_field_query = len(deals_ids) >= 1
@@ -218,7 +231,7 @@ class AmoCrmApi:
         contact_ids = []
 
         for index, result_deal in enumerate(duplicate_deals):
-            if result_deal.get('name') != original_deal.contact.name:
+            if not strings_equal(result_deal.get('name'), original_deal.contact.name):
                 print(
                     f'WARNING: Queried {result_deal.get("name")}, '
                     f'while searching for {original_deal.contact.name} '
@@ -300,7 +313,16 @@ class AmoCrmApi:
         print(f'status_patching: {res=}')
 
     async def patch_deal(self, deal: Deal, new_competitive_group: str):
-        contact_ids = await self._find_deal(deal=deal, patching=True)
+        deal_id = await self.find_crm_id(deal=deal)
+        print(f'DEBUG: found local crm_id: {deal_id}')
+
+        if deal_id is not None:
+            contact_ids = [await self._find_contract_id_by_deal_id(deal_id=deal_id)]
+            print(f'DEBUG: fround contact_id by local crm_id: {contact_ids=}')
+        else:
+            contact_ids = await self._find_deal(deal=deal, patching=True)
+            print(f'DEBUG: fround contact_id by _find_deal crm_id: {contact_ids=}')
+
         print(f'DEBUG: PATCHING. {contact_ids=}')
 
         patched_contacts = 0
@@ -326,8 +348,7 @@ class AmoCrmApi:
                     if link.get('to_entity_type') == 'leads':
                         deal_id = link.get('to_entity_id')
             except:
-                print(f'Amocrm: cant get id. {deal_result=}')
-                deal_id = None
+                print(f'ERROR Amocrm: cant get id. {deal_result=}')
 
             print(
                 f"({index + 1}/{len(contact_ids)}) PATCHED SUCCESSFULLY. NEW GROUPS: "
@@ -336,6 +357,7 @@ class AmoCrmApi:
 
             patched_contacts += 1
 
+        print(f'DEBUG PATCHING. returning id: {deal.crm_id=}, {deal_id=}')
         if patched_contacts > 0:
             return {'detail': 'success', 'deal_id': deal.crm_id or deal_id}
 
