@@ -34,6 +34,9 @@ async def run_deals():
     async for deal in db.get():
         i += 1
 
+        if deal.updated_at < deal.uploaded_at:
+            continue
+
         if is_new(deal=deal):
             print(f'INFO: Uploading new {deal=}')
             result = await amo.create_deal(deal)
@@ -56,6 +59,7 @@ async def run_deals():
             f"{is_updated(deal)=}, Deal={deal.dict()}"
         )
 
+    print('RUN_DEALS: finished execution')
     await process_pipeline_statuses(amo=amo)
 
 
@@ -79,8 +83,8 @@ async def process_pipeline_statuses(amo: AmoCrmApi):
 
     deals = await amo.get_all_deals()
     # print(len(deals))
-    for deal in deals:
-        print(f"get_deal: processing {deal=}")
+    for index, deal in enumerate(deals):
+        print(f"get_deal: processing {deal=}. {index}/{len(deals)}")
         lowest_status = 9999
         async for application in db.get(applicant_id=deal.applicant_id):
             contract_order = order_map.get(application.contract_status, 999)
