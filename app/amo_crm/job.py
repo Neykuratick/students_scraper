@@ -80,6 +80,7 @@ async def process_pipeline_statuses(amo: AmoCrmApi):
     deals = await amo.get_all_deals()
     # print(len(deals))
     for deal in deals:
+        print(f"get_deal: processing {deal=}")
         lowest_status = 9999
         async for application in db.get(applicant_id=deal.applicant_id):
             contract_order = order_map.get(application.contract_status, 999)

@@ -139,14 +139,19 @@ class AmoCrmApi:
         try:
             links = data.get('_embedded').get('links')
 
+            if len(links) < 1:
+                raise RuntimeError(f'Links len is < 0. {data=}')
+
             for link in links:
                 if link.get('to_entity_type') == 'contacts':
                     contact_id = link.get('to_entity_id')
-                    return contact_id if isinstance(contact_id, int) else None
+                    if isinstance(contact_id, int):
+                        return contact_id
+
+                    raise RuntimeError(f'{contact_id=} is not instance of int. {link=}')
 
         except any([AttributeError, TypeError]):
-            print(f'FIND CONTACT ERROR: contract data is presumably None. {data=}, {deal_id=}')
-            return
+            raise RuntimeError(f"FIND CONTACT ERROR: contract data is presumably None. {data=}, {deal_id=}")
 
     async def _find_deals_by_tag(self, tag: str, searching_deal: Deal) -> bool:
         """ По сути, не находит сделки, а проверяет, есть ли по такому тегу или нет """
@@ -214,13 +219,18 @@ class AmoCrmApi:
         exists_by_crm_id = await self._crm_id_exists(deal=deal, searching_tag=searching_tag)
         exists_by_tag = await self._tag_exists(tag=searching_tag, deal=deal)
         exists_by_field_query = len(deals_ids) >= 1
+        local_id = await self.find_crm_id(deal=deal)
+
+        exists_by_local_id = False
+        if isinstance(local_id, int):
+            exists_by_local_id = True
 
         print(
             f'DEAL EXISTS? applicant_id={deal.applicant_id}, {exists_by_crm_id=}, '
-            f'{exists_by_tag=} {exists_by_field_query=}'
+            f'{exists_by_tag=} {exists_by_field_query=} {exists_by_local_id=}'
         )
 
-        if any([exists_by_crm_id, exists_by_tag, exists_by_field_query]):
+        if any([exists_by_crm_id, exists_by_tag, exists_by_field_query, exists_by_local_id]):
             return True
         else:
             return False
@@ -318,10 +328,10 @@ class AmoCrmApi:
 
         if deal_id is not None:
             contact_ids = [await self._find_contract_id_by_deal_id(deal_id=deal_id)]
-            print(f'DEBUG: fround contact_id by local crm_id: {contact_ids=}')
+            print(f'DEBUG: found contact_id by local crm_id: {contact_ids=}')
         else:
             contact_ids = await self._find_deal(deal=deal, patching=True)
-            print(f'DEBUG: fround contact_id by _find_deal crm_id: {contact_ids=}')
+            print(f'DEBUG: found contact_id by _find_deal crm_id: {contact_ids=}')
 
         print(f'DEBUG: PATCHING. {contact_ids=}')
 

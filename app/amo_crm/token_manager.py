@@ -48,6 +48,9 @@ async def _get_token(payload: dict) -> str:
     if not access_token:
         raise RuntimeError(f'Access token token is None. {data=}')
 
+    if not refresh_token:
+        raise RuntimeError(f'CRITICAL!!!!!! REFRESH TOKEN IS NONE')
+
     return 'Bearer ' + access_token
 
 
@@ -66,6 +69,9 @@ class TokenManager:
     async def refresh_token(self):
         with open('test.txt', 'r') as f:
             refresh_token = f.read()
+
+        if refresh_token is None:
+            raise RuntimeError(f'CRITICAL!!!!!! REFRESH TOKEN IS NONE')
 
         payload = {
             "client_id": settings.AMO_CLIENT_ID,
