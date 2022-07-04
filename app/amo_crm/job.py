@@ -56,9 +56,10 @@ async def run_deals():
             f"{is_updated(deal)=}, Deal={deal.dict()}"
         )
 
+    await process_pipeline_statuses(amo=amo)
 
-async def process_pipeline_statuses():
-    amo = AmoCrmApi()
+
+async def process_pipeline_statuses(amo: AmoCrmApi):
 
     status_map = {
         0: 40586119,
