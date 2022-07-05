@@ -45,7 +45,7 @@ async def store_deals():
                     new_values=new_values
                 )
 
-        if isinstance(result, InsertOneResult):
+        elif isinstance(result, InsertOneResult):
             continue
 
         else:
