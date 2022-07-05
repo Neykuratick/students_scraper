@@ -47,11 +47,20 @@ async def run_deals():
             # print(f'INFO: Deal exists and is up to date. {i=}, {deal=}')
             continue
 
+        if result is None:
+            raise RuntimeError(f'Result is None!!! {deal=}')
+
         if result.get('detail') == 'duplicate':
+            crm_deal_id = None
             result = await patch_deal(deal=deal, amo=amo)
 
         if result.get('detail') == 'success':
             crm_deal_id = result.get('deal_id')
+
+            if crm_deal_id is None:
+                await db.actualize_uploaded_at(deal=deal)
+                continue
+
             await db.actualize_uploaded_at(deal=deal, crm_id=crm_deal_id)
 
         print(

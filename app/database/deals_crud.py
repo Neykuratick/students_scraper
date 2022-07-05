@@ -52,14 +52,18 @@ class DealsCRUD:
 
         return await self._collection.insert_one(document)
 
-    async def safe_update_one(self, application_id: int, new_values: dict):
+    async def safe_update_one(
+        self,
+        application_id: int,
+        new_values: dict
+    ):
         new_values['updated_at'] = datetime.now()
         return await self._collection.update_one(
             {'application_id': application_id},
             {'$set': new_values}
         )
 
-    async def actualize_uploaded_at(self, deal: Deal, crm_id: int = None) -> UpdateResult:
+    async def actualize_uploaded_at(self, deal: Deal, crm_id: str = None) -> UpdateResult:
         if crm_id:
             set_dict = {'uploaded_at': datetime.now(), 'crm_id': crm_id}
         else:

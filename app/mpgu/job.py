@@ -2,6 +2,7 @@ from app.amo_crm.models import Deal
 from app.database.deals_crud import db
 from app.mpgu.actualizer import get_contract_statuses
 from app.mpgu.api import get_latest_deals, get_applicants_data, get_item
+from pymongo.results import InsertOneResult
 
 
 def compose_new_values(deal: Deal, old_deal: Deal):
@@ -43,6 +44,9 @@ async def store_deals():
                     application_id=deal.application_id,
                     new_values=new_values
                 )
+
+        if isinstance(result, InsertOneResult):
+            continue
 
         else:
             raise RuntimeError(f'Unknown result. {result=}')
