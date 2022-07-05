@@ -34,8 +34,9 @@ async def run_deals():
     async for deal in db.get():
         i += 1
 
-        if deal.updated_at < deal.uploaded_at:
-            continue
+        if deal.updated_at is not None and deal.uploaded_at is not None:
+            if deal.updated_at < deal.uploaded_at:
+                continue
 
         if is_new(deal=deal):
             print(f'INFO: Uploading new {deal=}')
