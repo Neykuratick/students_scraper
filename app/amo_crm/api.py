@@ -215,7 +215,11 @@ class AmoCrmApi:
         if isinstance(deal.crm_id, int):
             return True
 
-        deals_ids = await self._find_deal(deal=deal)
+        try:
+            deals_ids = await self._find_deal(deal=deal)
+        except:
+            deals_ids = []
+
         exists_by_crm_id = await self._crm_id_exists(deal=deal, searching_tag=searching_tag)
         exists_by_tag = await self._tag_exists(tag=searching_tag, deal=deal)
         exists_by_field_query = len(deals_ids) >= 1

@@ -7,7 +7,12 @@ from datetime import datetime
 
 async def patch_deal(deal: Deal, amo: AmoCrmApi):
     groups = await db.find_all_competitive_groups(applicant_id=deal.applicant_id)
-    patch_result = await amo.patch_deal(deal=deal, new_competitive_group=groups)
+    try:
+        patch_result = await amo.patch_deal(deal=deal, new_competitive_group=groups)
+    except Exception as e:
+        print(f"Cant patch deal. {e=}")
+        return None
+
     return patch_result
 
 
@@ -49,7 +54,8 @@ async def run_deals():
             continue
 
         if result is None:
-            raise RuntimeError(f'Result is None!!! {deal=}')
+            print(f'CRITICAL!!! Result is None!!! {deal=}')
+            continue
 
         if result.get('detail') == 'duplicate':
             crm_deal_id = None
