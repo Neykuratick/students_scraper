@@ -57,11 +57,11 @@ async def run_deals():
             print(f'CRITICAL!!! Result is None!!! {deal=}')
             continue
 
-        if result.get('detail') == 'duplicate':
+        if result is not None and result.get('detail') == 'duplicate':
             crm_deal_id = None
             result = await patch_deal(deal=deal, amo=amo)
 
-        if result.get('detail') == 'success':
+        if result is not None and result.get('detail') == 'success':
             crm_deal_id = result.get('deal_id')
 
             if crm_deal_id is None:
