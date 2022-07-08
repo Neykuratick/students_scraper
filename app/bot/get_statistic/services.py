@@ -100,7 +100,7 @@ async def get_statistic(snils: str, group_id: int) -> str:
 
         website_snils = col[1].getText()
         total_scores = col[total_scores_id].getText()
-        agreement = col[8].getText().strip()  # + true, - false
+        agreement = col[9].getText().strip()  # + true, - false
         if '+' in agreement:
             agreements += 1
 
