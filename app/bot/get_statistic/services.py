@@ -73,21 +73,22 @@ async def get_statistic(snils: str, group_id: int) -> str:
     print(f"https://sdo.mpgu.org/competition-list/entrant-list?cg={group_id}&type=list")
     print(snils)
 
-    print(f"\n\n{r.text=}\n\n")
     soup = BeautifulSoup(r.text, 'html.parser')
     table = soup.find('table')
 
     try:
         budget_seats_str = soup.find("span", text="Контрольные цифры приема:").next_sibling
-        budget_seats = int(budget_seats_str.replace(' ', ''))
+        sep = '\r\n                                                '
+        budget_seats_str = budget_seats_str.split(sep)[1].split(',')[0]
+        budget_seats = int(budget_seats_str)
     except Exception:
         budget_seats = -9999
 
     if group_id in [MajorsEnum.JUR_INT_JUR, MajorsEnum.MANAGEMENT]:
         # Если направление платное
-        total_scores_id = 11
+        total_scores_id = 5
     else:
-        total_scores_id = 10
+        total_scores_id = 5
 
     people_above = -9999
     found_scores = -9999
