@@ -75,7 +75,7 @@ class TokenManager:
         if not self.token:
             await self.refresh_token()
 
-        elif self.requests >= 100:
+        elif self.requests >= 10000:
             await self.refresh_token()
             self.requests = 0
 
