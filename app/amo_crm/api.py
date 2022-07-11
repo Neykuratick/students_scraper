@@ -4,7 +4,6 @@ from app.amo_crm.models import (
     CompetitiveGroupField, Company, Deal,
 )
 from app.amo_crm.models import GetDeal
-from app.amo_crm.token_manager import TokenManager
 from app.amo_crm.token_manager import token_manager
 from app.database.deals_crud import db
 from config import settings
@@ -74,7 +73,8 @@ class AmoCrmApi:
     async def _make_request_patch(self, resource: str, payload: dict | list[dict]):
         url = f'https://{settings.AMO_SUBDOMAIN}.amocrm.ru{resource}'
 
-        headers = {'Authorization': await token_manager.get_token()}
+        token = await token_manager.get_token()
+        headers = {'Authorization': token.header}
         response = requests.patch(url, headers=headers, json=payload)
         self._process_response(status_code=response.status_code, url=url, response=response)
 
@@ -84,7 +84,8 @@ class AmoCrmApi:
     async def _make_request_post(self, resource: str, payload: dict | list[dict]):
         url = f'https://{settings.AMO_SUBDOMAIN}.amocrm.ru{resource}'
 
-        headers = {'Authorization': await token_manager.get_token()}
+        token = await token_manager.get_token()
+        headers = {'Authorization': token.header}
         response = requests.post(url, headers=headers, json=payload)
         self._process_response(status_code=response.status_code, url=url, response=response)
 
@@ -99,7 +100,8 @@ class AmoCrmApi:
         if no_limit is False:
             url += '?limit=1'
 
-        headers = {'Authorization': await token_manager.get_token()}
+        token = await token_manager.get_token()
+        headers = {'Authorization': token.header}
         response = requests.get(url, headers=headers, json=payload)
         self._process_response(status_code=response.status_code, url=url, response=response)
 
