@@ -1,5 +1,6 @@
 from app.amo_crm.exceptions import InvalidAccessToken
 from app.amo_crm.exceptions import InvalidRefreshToken
+from app.database.deals_crud import db
 from config import settings
 from aiohttp_requests import requests
 from requests import post
@@ -74,7 +75,7 @@ class TokenManager:
         if not self.token:
             await self.refresh_token()
 
-        elif self.requests >= 2:
+        elif self.requests >= 100:
             await self.refresh_token()
             self.requests = 0
 
@@ -103,6 +104,7 @@ class TokenManager:
         with open('test.txt', 'w') as f:
             print(f'TokenManager Info: updating {refresh_token=}')
             f.write(self.token.refresh_token)
+            await db.insert_token(token=self.token.refresh_token)
 
 
 token_manager = TokenManager()

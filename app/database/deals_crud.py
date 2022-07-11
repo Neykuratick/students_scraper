@@ -12,6 +12,7 @@ class DealsCRUD:
         self._client = motor_asyncio.AsyncIOMotorClient(conn_str, serverSelectionTimeoutMS=5000)
         self._database = self._client.scraper
         self._collection = self._database.deals
+        self._token_collection = self._database.tokens
 
     async def get_one(self, key: str, value: Any) -> Deal | None:
         document = await self._collection.find_one({key: value})
@@ -82,6 +83,9 @@ class DealsCRUD:
                 groups.append(group)
 
         return ", ".join(groups) if len(groups) > 0 else ""
+
+    async def insert_token(self, token: str):
+        await self._token_collection.insert_one({'token': token, 'date': datetime.now()})
 
 
 db = DealsCRUD()
