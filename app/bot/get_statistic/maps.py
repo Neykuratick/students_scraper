@@ -6,7 +6,7 @@ class MajorsEnum(int, Enum):
     PED_ENG_ECO = 51,
     PED_ENG_IT = 52,
     LING_ENG_COM = 1877
-    JUR_INT_JUR = 1822
+    JUR_INT_JUR = 2941
 
     GAME_DESIGN = 2940
     COMPUTER_SCIENCE = 2938
