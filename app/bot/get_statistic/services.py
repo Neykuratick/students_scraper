@@ -86,9 +86,9 @@ async def get_statistic(snils: str, group_id: int) -> str:
 
     if group_id in [MajorsEnum.JUR_INT_JUR, MajorsEnum.MANAGEMENT]:
         # Если направление платное
-        total_scores_id = 5
+        total_scores_id = 12
     else:
-        total_scores_id = 5
+        total_scores_id = 11
 
     people_above = -9999
     found_scores = -9999
